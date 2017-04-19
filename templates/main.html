@@ -23,7 +23,7 @@
    }
    </style>
     <script type="text/javascript">
-        function on_change(e){
+        function on_click(e){
             console.log(e.value);
             $.ajax({
                 url: '/plugin/' + e.value,
@@ -56,7 +56,7 @@
                         <div class="ch3 text-right">
                             {% for id, plugin in plugins %}
                                 <label>{{ plugin }}: </label>
-                                <input type="radio" name="plugin" value="{{ id }}" onChange="on_change(this)">
+                                <input type="radio" name="plugin" value="{{ id }}" onClick="on_click(this)">
                                 <br>
                             {% endfor %}
                         </div>
