@@ -1,52 +1,123 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>GLM control pannel</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-   <style>
-   .center-center {
-       display: flex; justify-content: center; align-items:center;
-   }
-   .vignet-title { font-size: 2.4em; background-color: gainsboro; border-radius: 0px 0px 4px 4px; padding: 5px 0; padding-top: 20px; padding-bottom: 14px; }
-   .vignet-content { height: 300px; overflow-y: scroll; background-color: whitesmoke; border-radius: 4px 4px 0px 0px; padding: 5px 0; align-items: stretch; padding-bottom: 50px;, padding-top: 50px;}
+    <style>
+        .center-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-   .vignet{ margin-top:15px; margin-bottom:15px; }
-   .ch3 { font-size: 24px; font-family: inherit; font-weight: 500; line-height: 1.1; color: inherit;}
-   body, html { height:100%; width:100%; margin:0; padding:0; }
-   .container { height:100%; }
-   .glyphicon-bordered { font-size: 20px; vertical-align: middle; display: table-cell; }
-   .glyphicon-ring { width: 60px; height: 60px; border-radius: 50%; border: 4px solid whitesmoke; color:whitesmoke; display: inline-table; text-align: center; background-color: #111 ; } .mid-widget { position: absolute;bottom: 68px;width: calc(100% - 30px); }
-   .blank-space {
-    background-color: whitesmoke;
-    height: 30px;
-   }
-   </style>
+        .vignet-title {
+            font-size: 2.4em;
+            background-color: gainsboro;
+            border-radius: 0px 0px 4px 4px;
+            padding: 5px 0;
+            padding-top: 20px;
+            padding-bottom: 14px;
+        }
+
+        .vignet-content {
+            height: 300px;
+            overflow-y: scroll;
+            background-color: whitesmoke;
+            border-radius: 4px 4px 0px 0px;
+            padding: 5px 0;
+            align-items: stretch;
+            padding-bottom: 50px;
+            ,
+            padding-top: 50px;
+        }
+
+        .vignet {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .ch3 {
+            font-size: 24px;
+            font-family: inherit;
+            font-weight: 500;
+            line-height: 1.1;
+            color: inherit;
+        }
+
+        body,
+        html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            height: 100%;
+        }
+
+        .glyphicon-bordered {
+            font-size: 20px;
+            vertical-align: middle;
+            display: table-cell;
+        }
+
+        .glyphicon-ring {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid whitesmoke;
+            color: whitesmoke;
+            display: inline-table;
+            text-align: center;
+            background-color: #111;
+        }
+
+        .mid-widget {
+            position: absolute;
+            bottom: 68px;
+            width: calc(100% - 30px);
+        }
+
+        .blank-space {
+            background-color: whitesmoke;
+            height: 30px;
+        }
+    </style>
     <script type="text/javascript">
-        function on_click(e){
+        function on_click(e) {
             console.log(e.value);
             $.ajax({
                 url: '/plugin/' + e.value,
                 method: 'GET',
-                error: function(xhr, status, err){
+                error: function(xhr, status, err) {
                     console.log(xhr, status, err.toString());
                 }
             });
         };
     </script>
     <style type="text/css">
-        body, html{
+        body,
+        html {
             width: 100%;
             height: 100%;
             margin: 0;
             padding: 0;
         }
-        .glyphicon-ring{
-            background: crimson; background: -webkit-linear-gradient(salmon, crimson); background: -o-linear-gradient(salmon, crimson); background: -moz-linear-gradient(salmon, crimson); background: linear-gradient(salmon, crimson);
+
+        .glyphicon-ring {
+            background: crimson;
+            background: -webkit-linear-gradient(salmon, crimson);
+            background: -o-linear-gradient(salmon, crimson);
+            background: -moz-linear-gradient(salmon, crimson);
+            background: linear-gradient(salmon, crimson);
             color: whitesmoke;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="row center-center" style="height:100%;">
@@ -55,10 +126,9 @@
                     <div class="center-center vignet-content">
                         <div class="ch3 text-right">
                             {% for id, plugin in plugins %}
-                                <label>{{ plugin }}: </label>
-                                <input type="radio" name="plugin" value="{{ id }}" onClick="on_click(this)">
-                                <br>
-                            {% endfor %}
+                            <label>{{ plugin }}: </label>
+                            <input type="radio" name="plugin" value="{{ id }}" onClick="on_click(this)">
+                            <br> {% endfor %}
                         </div>
                     </div>
                     <div class="blank-space"></div>
@@ -75,4 +145,5 @@
         </div>
     </div>
 </body>
+
 </html>
