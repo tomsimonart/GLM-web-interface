@@ -16,7 +16,7 @@ def index():
     return render_template('main.html', plugins=enumerate(plugins))
 
 
-@app.route('/plugin/<id>')
+@app.route('/plugin/<int:id>')
 def select_plugin(id):
     global plugin_loader
     print(id)
@@ -25,3 +25,7 @@ def select_plugin(id):
     plugin_loader = Process(target=glm.plugin_loader, args=(glm.plugin_scan(PLUGIN_DIRECTORY)[int(id)],))
     plugin_loader.start()
     return ''
+
+@app.route('/plugin/<int:id>/webview')
+def webview(id):
+    return render_template('webview.html', id=id)
