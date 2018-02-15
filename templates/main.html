@@ -88,7 +88,8 @@
     </style>
     <script type="text/javascript">
         function select_plugin(e) {
-            console.log(e.value);
+            console.log('load plugin ' + e.value);
+
             $.ajax({
                 url: '/plugin/' + e.value,
                 method: 'GET',
@@ -96,21 +97,20 @@
                     console.log(xhr, status, err.toString());
                 }
             });
-            // $.get('/plugin/' + e.value + '/webview', function(data){
-            //     $()
-            // })
+
             $('#webview').load('/plugin/' + e.value + '/webview')
         };
-        // function send_value(v) {
-        //     console.log(v.value);
-        //     $.ajax({
-        //         url: window.location.pathname,
-        //         method: 'POST',
-        //         error: function(xhr, status, err) {
-        //             console.log(xhr, status, err.toString());
-        //         }
-        //     });
-        // };
+
+        function send_value(v) {
+            console.log(v.value);
+            $.ajax({
+                url: window.location.pathname,
+                method: 'POST',
+                error: function(xhr, status, err) {
+                    console.log(xhr, status, err.toString());
+                }
+            });
+        };
     </script>
     <style type="text/css">
         body,

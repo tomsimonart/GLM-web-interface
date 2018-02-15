@@ -29,3 +29,8 @@ def select_plugin(id):
 @app.route('/plugin/<int:id>/webview')
 def webview(id):
     return render_template('webview.html', id=id)
+
+@app.route('/plugin/<int:id>/<event>')
+def event(id, event):
+    # Need to open a event server on each plugins
+    pass
