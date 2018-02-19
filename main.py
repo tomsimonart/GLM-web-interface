@@ -11,7 +11,9 @@ PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
 plugin_loader = None
 
 server_addr = 'localhost'
-server_port = 9998
+server_port = 9999
+
+BUFFSIZE = 512
 
 @app.route('/')
 def index():
@@ -37,15 +39,14 @@ def webview(id):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((server_addr, server_port))
 
-    # Web client response
-    response = "web_client;" + "req_view"
-    client.send(response.encode())
+    # Send user name
+    client.send("web_client".encode())
 
-    response = client.recv(512)
+    response = client.recv(BUFFSIZE)
     client.close()
     return render_template('webview.html', data=response.decode())
 
-@app.route('/plugin/<int:id>/<str:event>')
+@app.route('/plugin/<int:id>/<event>')
 def event(id, event):
     # Need to open a event client on each plugins
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,7 +55,7 @@ def event(id, event):
     response = "web_client" + event
     client.send(response.encode())
 
-    response = client.recv(512) # Drop response
+    response = client.recv(BUFFSIZE) # Drop response
     client.close()
 
     return None
