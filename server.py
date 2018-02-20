@@ -24,25 +24,6 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Re-use port
 server.bind(server_addr)
 server.listen(5)
 
-# def handle(client, user, client_id, transmit):
-#     response = " " # Will be sent to client
-#     client_request = client.recv(BUFFSIZE).decode() # 2 recv
-#     msg(client_id, 0, user, client_request)
-#
-#     # Plugin
-#     if user == "plugin":
-#         response = "plugin handle"
-#
-#     # Web client
-#     elif user == "web_client":
-#         response = "web_client handle"
-#
-#     else:
-#         transmit = False
-#
-#     transmit = False
-#
-#     return response, transmit
 
 def handle_plugin(plugin, plugin_id, transmit):
     # Check if plugin is outdated
@@ -55,14 +36,27 @@ def handle_plugin(plugin, plugin_id, transmit):
 
     return transmit
 
+
 def handle_web_client(web_client, web_client_id, transmit):
+    stop = False
+    while not stop:
+        event_queue.put("event 1")
+        # Getting events and sending data back
+        event = event_queue.get() # Blocking
+        web_client.send(event.encode()) # 2-n send
+        data_list[1] = web_client.recv(BUFFSIZE).decode()
+        stop = True
+
     # Detect if client is still connected
-    response = web_client.recv(BUFFSIZE).decode()
-    msg(response, 0, "web_client", web_client_id)
-    transmit = False
+
+    # response = web_client.recv(BUFFSIZE).decode()
+    # msg(response, 0, "web_client", web_client_id)
+    # transmit = False
+
     # Put data in queue if there is an event
     # Send back web data to web client if web_client requests it
     return transmit
+
 
 def handle_client(client, addr, user, client_id):
     global end # Close server
@@ -84,6 +78,7 @@ def handle_client(client, addr, user, client_id):
     msg(user + "_" + str(client_id), 2, "Thread", transmit)
     return None
 
+
 if __name__ == "__main__":
     event_queue = Queue() # All events coming from web clients
     data_list = [0, "", 0] # Html data or forms container [id, data, flag]
@@ -101,7 +96,7 @@ if __name__ == "__main__":
                 # Check if user is a possible name
                 if user == "plugin" or user == "web_client":
                     # User accepted
-                    client.send(b"a:client_connected")
+                    client.send(b"a:client_connected") # 1 send
                     msg("Accepted", 1, "Server", user, client_id)
 
                     # If user is plugin then change id in data_list[0]

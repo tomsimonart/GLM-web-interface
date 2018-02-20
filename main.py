@@ -2,6 +2,7 @@ import socket
 from GLM import glm
 from random import randint
 from multiprocessing import Process
+from GLM.source.libs.rainbow import msg
 from flask import Flask, render_template
 
 app = Flask(__name__)
@@ -41,10 +42,21 @@ def webview(id):
 
     # Send user name
     client.send("web_client".encode())
+    response = client.recv(BUFFSIZE).decode()
+    msg(response, 0, "plugin_handler")
 
-    response = client.recv(BUFFSIZE)
+    if response == "a:client_connected":
+        event = client.recv(BUFFSIZE).decode()
+        msg(event, 1, "Event")
+        client.send(b"web data")
+
+    else:
+        msg("Connection refused", 3)
+
+    # Getting events
+
     client.close()
-    return render_template('webview.html', data=response.decode())
+    return render_template('webview.html', data=response)
 
 @app.route('/plugin/<int:id>/<event>')
 def event(id, event):
