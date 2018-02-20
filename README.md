@@ -3,7 +3,7 @@
 ## Installation
 * Clone this repository then get into its directory
 >```cd ./GLM-web-interface```
-* edit .git/config if don't have repo rights. Change this line:
+* edit .git/config if don't have the repository rights. Change this line:
 > ```url = git@github.com:tomsimonart/GLM.git```
 
 with
