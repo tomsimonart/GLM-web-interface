@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import socket
 import threading
 from sys import argv
@@ -26,26 +27,41 @@ server.listen(5)
 
 
 def handle_plugin(plugin, plugin_id, transmit):
+    """ Reads events from the queue then request data to the plugin and
+    stores it back to the data list
+    """
     # Check if plugin is outdated
     if plugin_id < data_list[0]:
         transmit = False
 
     # Update web data and read queue (async ?)
     else:
-        transmit = False
+        while transmit:
+            # Gets the events from the queue
+            event = event_queue.get()
+            plugin.send(json.loads(event).encode())
+
+            data = plugin.recv(BUFFSIZE).decode()
+            msg("got data", 0, "Plugin", data)
+            if data == "EOT": # End of transmission with the plugin
+                transmit = False
 
     return transmit
 
 
 def handle_web_client(web_client, web_client_id, transmit):
+    """ This function gets events from the web client and adds them to
+    the queue, plugin should handle the events and send back adequate data
+    that will then be sent back from here to the client
+    """
     stop = False
     while not stop:
-        event_queue.put("event 1")
+        # event_queue.put("event 1")
         # Getting events and sending data back
-        event = event_queue.get() # Blocking
-        web_client.send(event.encode()) # 2-n send
-        data_list[1] = web_client.recv(BUFFSIZE).decode()
+        event_queue.put(web_client.recv(BUFFSIZE).decode())
+        msg("got data", 0, "Web_cli", data_list)
         stop = True
+    transmit = False
 
     # Detect if client is still connected
 
@@ -91,13 +107,13 @@ if __name__ == "__main__":
                 # Accepting client connection
                 client, addr = server.accept()
                 user = client.recv(BUFFSIZE).decode() # 1 recv
-                msg("New client", 1, "Server", addr)
+                # msg("New client", 1, "Server", addr)
 
                 # Check if user is a possible name
                 if user == "plugin" or user == "web_client":
                     # User accepted
                     client.send(b"a:client_connected") # 1 send
-                    msg("Accepted", 1, "Server", user, client_id)
+                    # msg("Accepted", 1, "Server", user, client_id)
 
                     # If user is plugin then change id in data_list[0]
                     # This is used to verify plugin
