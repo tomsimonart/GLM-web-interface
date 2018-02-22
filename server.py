@@ -36,10 +36,11 @@ def handle_plugin(plugin, plugin_id, transmit):
 
     # Update web data and read queue (async ?)
     else:
+        event_queue.put("event")
         while transmit:
             # Gets the events from the queue
             event = event_queue.get()
-            plugin.send(json.loads(event).encode())
+            plugin.send(json.dumps(event).encode())
 
             data = plugin.recv(BUFFSIZE).decode()
             msg("got data", 0, "Plugin", data)
@@ -65,10 +66,6 @@ def handle_web_client(web_client, web_client_id, transmit):
 
     # Detect if client is still connected
 
-    # response = web_client.recv(BUFFSIZE).decode()
-    # msg(response, 0, "web_client", web_client_id)
-    # transmit = False
-
     # Put data in queue if there is an event
     # Send back web data to web client if web_client requests it
     return transmit
@@ -85,10 +82,6 @@ def handle_client(client, addr, user, client_id):
 
         elif user == "web_client":
             transmit = handle_web_client(client, client_id, transmit)
-
-        # response, transmit = handle(client, user, client_id, transmit)
-        # msg("Responding", 3, response, addr)
-        # client.send(response.encode())
 
     # Message for thread ending
     msg(user + "_" + str(client_id), 2, "Thread", transmit)
@@ -113,7 +106,6 @@ if __name__ == "__main__":
                 if user == "plugin" or user == "web_client":
                     # User accepted
                     client.send(b"a:client_connected") # 1 send
-                    # msg("Accepted", 1, "Server", user, client_id)
 
                     # If user is plugin then change id in data_list[0]
                     # This is used to verify plugin
