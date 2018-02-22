@@ -46,9 +46,9 @@ def webview(id):
     msg(response, 0, "plugin_handler")
 
     if response == "a:client_connected":
-        event = client.recv(BUFFSIZE).decode()
-        msg(event, 1, "Event")
-        client.send(b"web data")
+        data = json.loads(client.recv(BUFFSIZE)).decode()
+        msg(data, 1, "Web data received")
+        # client.send(b"web data")
 
     else:
         msg("Connection refused", 3)
@@ -56,7 +56,7 @@ def webview(id):
     # Getting events
 
     client.close()
-    return render_template('webview.html', data=response)
+    return render_template('webview.html', data=data)
 
 @app.route('/plugin/<int:id>/<event>')
 def event(id, event):

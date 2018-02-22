@@ -36,7 +36,8 @@ def handle_plugin(plugin, plugin_id, transmit):
 
     # Update web data and read queue (async ?)
     else:
-        event_queue.put("event")
+        # Event pattern
+        event_queue.put({"method":"GET", "data":"refresh"})
         while transmit:
             # Gets the events from the queue
             event = event_queue.get()
