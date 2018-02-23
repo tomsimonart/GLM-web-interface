@@ -8,7 +8,6 @@ from time import sleep
 from queue import Queue
 from GLM.source.libs.rainbow import msg
 
-SEP_CHAR = ';'
 BUFFSIZE = 512
 end = False
 
@@ -39,25 +38,36 @@ def handle_plugin(plugin, plugin_id, transmit):
         # Event pattern
         # event_queue.put({"method":"GET", "data":"refresh"})
         while transmit:
-            # Gets the events from the queue
-            event = event_queue.get() # Blocking
-            plugin.send(json.dumps(event).encode())
-            msg("sent data", 0, "Plugin", event)
+            client.settimeout(3) # Add a timeout to wait for client
+            status = json.loads(client.recv(BUFFSIZE).decode())
+            if status == "READY":
+                client.settimeout(None)
+                # Gets the events from the queue
+                event = event_queue.get() # Blocking
+                plugin.send(json.dumps(event).encode())
+                msg("sent data", 0, "Plugin", event)
 
-            # receive data from plugin
-            response = plugin.recv(BUFFSIZE).decode()
-            msg(response, 3)
-            msg("got data", 0, "Plugin", response)
+                # receive data from plugin
+                response = plugin.recv(BUFFSIZE).decode()
+                msg("got data", 0, "Plugin", response)
 
-            if response == "EOT": # End of transmission with the plugin
+                if response == "EOT": # End of transmission with the plugin
+                    transmit = False
+
+                else:
+                    # Update data in data_list and set refresh_flag to True
+                    msg(response)
+                    print(plugin)
+                    msg(json.loads(response), 3)
+                    data_list[1] = json.loads(response)
+                    data_list[2] = True
+
+            elif status == "EOT":
+                client.settimeout(None)
                 transmit = False
 
             else:
-                # Update data in data_list and set refresh_flag to True
-                data_list[1] = json.loads(response)
-                data_list[2] = True
-
-
+                client.settimeout(None)
 
     return transmit
 
