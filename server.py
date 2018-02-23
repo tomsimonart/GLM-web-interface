@@ -37,16 +37,27 @@ def handle_plugin(plugin, plugin_id, transmit):
     # Update web data and read queue (async ?)
     else:
         # Event pattern
-        event_queue.put({"method":"GET", "data":"refresh"})
+        # event_queue.put({"method":"GET", "data":"refresh"})
         while transmit:
             # Gets the events from the queue
-            event = event_queue.get()
+            event = event_queue.get() # Blocking
             plugin.send(json.dumps(event).encode())
+            msg("sent data", 0, "Plugin", event)
 
-            data = plugin.recv(BUFFSIZE).decode()
-            msg("got data", 0, "Plugin", data)
-            if data == "EOT": # End of transmission with the plugin
+            # receive data from plugin
+            response = plugin.recv(BUFFSIZE).decode()
+            msg(response, 3)
+            msg("got data", 0, "Plugin", response)
+
+            if response == "EOT": # End of transmission with the plugin
                 transmit = False
+
+            else:
+                # Update data in data_list and set refresh_flag to True
+                data_list[1] = json.loads(response)
+                data_list[2] = True
+
+
 
     return transmit
 
@@ -56,19 +67,21 @@ def handle_web_client(web_client, web_client_id, transmit):
     the queue, plugin should handle the events and send back adequate data
     that will then be sent back from here to the client
     """
-    stop = False
-    while not stop:
-        # event_queue.put("event 1")
-        # Getting events and sending data back
-        event_queue.put(web_client.recv(BUFFSIZE).decode())
-        msg("got data", 0, "Web_cli", data_list)
-        stop = True
+    # Getting events
+    event = json.loads(web_client.recv(BUFFSIZE).decode())
+    event_queue.put(event)
+
+    # Send data back if data refresh flag is True
+    refreshed = False
+    while not refreshed:
+        if data_list[2]:
+            web_client.send(json.dumps(data_list[1]).encode())
+            data_list[2] = False # Put the refresh flag to False again
+            refreshed = True
+
     transmit = False
 
     # Detect if client is still connected
-
-    # Put data in queue if there is an event
-    # Send back web data to web client if web_client requests it
     return transmit
 
 
@@ -77,7 +90,6 @@ def handle_client(client, addr, user, client_id):
     transmit = True # Close transmission with client
 
     while transmit:
-        sleep(0.5)
         if user == "plugin":
             transmit = handle_plugin(client, client_id, transmit)
 
@@ -91,7 +103,9 @@ def handle_client(client, addr, user, client_id):
 
 if __name__ == "__main__":
     event_queue = Queue() # All events coming from web clients
-    data_list = [0, "", 0] # Html data or forms container [id, data, flag]
+
+    # Html data or forms container [id, data, refresh_flag]
+    data_list = [0, "", False]
 
     try:
         msg("Starting", 1, "Server", server_addr)
@@ -101,7 +115,6 @@ if __name__ == "__main__":
                 # Accepting client connection
                 client, addr = server.accept()
                 user = client.recv(BUFFSIZE).decode() # 1 recv
-                # msg("New client", 1, "Server", addr)
 
                 # Check if user is a possible name
                 if user == "plugin" or user == "web_client":
@@ -123,8 +136,8 @@ if __name__ == "__main__":
                     args=(client, addr, user, client_id),
                     daemon=True
                     )
-                client_handler.start()
                 msg(client_handler.getName(), 0, "Thread", user, client_id)
+                client_handler.start()
                 client_id += 1
             else:
                 server.close()

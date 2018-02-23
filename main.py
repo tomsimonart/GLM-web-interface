@@ -1,3 +1,4 @@
+import json
 import socket
 from GLM import glm
 from random import randint
@@ -37,6 +38,8 @@ def select_plugin(id):
 
 @app.route('/plugin/<int:id>/webview')
 def webview(id):
+    """ Request data from server then render it's template
+    """
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((server_addr, server_port))
 
@@ -46,14 +49,16 @@ def webview(id):
     msg(response, 0, "plugin_handler")
 
     if response == "a:client_connected":
-        data = json.loads(client.recv(BUFFSIZE)).decode()
+        # Ask for data
+        request = json.dumps({"method": "GET", "data": "refresh"}).encode()
+        client.send(request)
+        # Wait for data
+        data = json.loads(client.recv(BUFFSIZE).decode())
         msg(data, 1, "Web data received")
         # client.send(b"web data")
 
     else:
         msg("Connection refused", 3)
-
-    # Getting events
 
     client.close()
     return render_template('webview.html', data=data)
