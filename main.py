@@ -36,32 +36,63 @@ def select_plugin(id):
     plugin_loader.start()
     return ''
 
+# @app.route('/plugin/<int:id>/webview')
+# def webview(id):
+#     """ Request data from server then render it's template
+#     """
+#     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     client.connect((server_addr, server_port))
+#
+#     # Send user name
+#     client.send("web_client".encode())
+#     response = client.recv(BUFFSIZE).decode()
+#     msg(response, 0, "plugin_handler")
+#
+#     if response == "a:client_connected":
+#         # Ask for data
+#         request = json.dumps({"method": "GET", "data": "refresh"}).encode()
+#         client.send(request)
+#         # Wait for data
+#         data = client.recv(BUFFSIZE).decode()
+#         print("getjson") # Bloc
+#         if data == "EOF" or data == "":
+#             client.close()
+#         else:
+#             msg(data, 1, "Web data received")
+#             # client.send(b"web data")
+#
+#     else:
+#         msg("Connection refused", 3)
+#
+#     client.close()
+#     return render_template('webview.html', data=data)
+
+
 @app.route('/plugin/<int:id>/webview')
 def webview(id):
     """ Request data from server then render it's template
     """
+    # Connection to server
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((server_addr, server_port))
 
     # Send user name
     client.send("web_client".encode())
-    response = client.recv(BUFFSIZE).decode()
-    msg(response, 0, "plugin_handler")
 
-    if response == "a:client_connected":
-        # Ask for data
+    # Can connect ?
+    status = client.recv(BUFFSIZE).decode()
+    if status == "a:client_connected":
         request = json.dumps({"method": "GET", "data": "refresh"}).encode()
         client.send(request)
-        # Wait for data
-        data = json.loads(client.recv(BUFFSIZE).decode())
-        msg(data, 1, "Web data received")
-        # client.send(b"web data")
+        ack = client.recv(BUFFSIZE).decode()
 
     else:
-        msg("Connection refused", 3)
+        msg("Can't send events", 3)
 
+    client.send(b"EOT")
     client.close()
-    return render_template('webview.html', data=data)
+    return ''
+
 
 @app.route('/plugin/<int:id>/<event>')
 def event(id, event):
@@ -75,4 +106,4 @@ def event(id, event):
     response = client.recv(BUFFSIZE) # Drop response
     client.close()
 
-    return None
+    return ''

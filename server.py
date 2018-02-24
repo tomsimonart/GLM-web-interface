@@ -7,6 +7,7 @@ from sys import argv
 from time import sleep
 from queue import Queue
 from GLM.source.libs.rainbow import msg
+import traceback
 
 BUFFSIZE = 512
 end = False
@@ -33,15 +34,12 @@ def handle_plugin(plugin, plugin_id, transmit):
     if plugin_id < data_list[0]:
         transmit = False
 
-    # Update web data and read queue (async ?)
     else:
-        # Event pattern
-        # event_queue.put({"method":"GET", "data":"refresh"})
         while transmit:
-            client.settimeout(3) # Add a timeout to wait for client
-            status = json.loads(client.recv(BUFFSIZE).decode())
+            plugin.settimeout(3) # Add a timeout to wait for plugin
+            status = plugin.recv(BUFFSIZE).decode()
             if status == "READY":
-                client.settimeout(None)
+                plugin.settimeout(None)
                 # Gets the events from the queue
                 event = event_queue.get() # Blocking
                 plugin.send(json.dumps(event).encode())
@@ -51,7 +49,7 @@ def handle_plugin(plugin, plugin_id, transmit):
                 response = plugin.recv(BUFFSIZE).decode()
                 msg("got data", 0, "Plugin", response)
 
-                if response == "EOT": # End of transmission with the plugin
+                if response == "EOT" or response == "": # End of transmission with the plugin
                     transmit = False
 
                 else:
@@ -60,14 +58,15 @@ def handle_plugin(plugin, plugin_id, transmit):
                     print(plugin)
                     msg(json.loads(response), 3)
                     data_list[1] = json.loads(response)
-                    data_list[2] = True
+                    data_list[2] += 1
 
-            elif status == "EOT":
-                client.settimeout(None)
+            elif status == "EOT" or status == "":
+                plugin.settimeout(None)
                 transmit = False
 
             else:
-                client.settimeout(None)
+                plugin.settimeout(None)
+                transmit = False
 
     return transmit
 
@@ -77,21 +76,27 @@ def handle_web_client(web_client, web_client_id, transmit):
     the queue, plugin should handle the events and send back adequate data
     that will then be sent back from here to the client
     """
-    # Getting events
-    event = json.loads(web_client.recv(BUFFSIZE).decode())
-    event_queue.put(event)
+    while transmit:
 
-    # Send data back if data refresh flag is True
-    refreshed = False
-    while not refreshed:
-        if data_list[2]:
-            web_client.send(json.dumps(data_list[1]).encode())
-            data_list[2] = False # Put the refresh flag to False again
-            refreshed = True
+        # Add event to queue
+        event = web_client.recv(BUFFSIZE).decode()
+        web_client.send(b"ACK")
+        if event == "EOT" or event == "":
+            transmit = False
 
-    transmit = False
+        else:
+            event_queue.put(json.loads(event))
 
-    # Detect if client is still connected
+            # Wait for data_list to get an update then send it back to web_cli
+            refresh_flag = data_list[2]
+            refreshed = False
+            while not refreshed:
+                if refresh_flag < data_list[2]:
+                    web_client.send(json.dumps(data_list[1].encode()))
+                    refreshed = True
+
+            transmit = False
+
     return transmit
 
 
@@ -114,8 +119,8 @@ def handle_client(client, addr, user, client_id):
 if __name__ == "__main__":
     event_queue = Queue() # All events coming from web clients
 
-    # Html data or forms container [id, data, refresh_flag]
-    data_list = [0, "", False]
+    # Html data or forms container [id, data, refresh_flag_int]
+    data_list = [0, "", 0]
 
     try:
         msg("Starting", 1, "Server", server_addr)
@@ -155,6 +160,6 @@ if __name__ == "__main__":
                 break
     except KeyboardInterrupt:
         print()
-        # traceback.print_exc()
+        traceback.print_exc()
         msg("Interruption", 3, "Server", server)
         server.close()
