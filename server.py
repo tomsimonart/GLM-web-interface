@@ -80,7 +80,6 @@ def handle_web_client(web_client, web_client_id, transmit):
 
         # Add event to queue
         event = web_client.recv(BUFFSIZE).decode()
-        web_client.send(b"ACK")
         if event == "EOT" or event == "":
             transmit = False
 
@@ -92,7 +91,7 @@ def handle_web_client(web_client, web_client_id, transmit):
             refreshed = False
             while not refreshed:
                 if refresh_flag < data_list[2]:
-                    web_client.send(json.dumps(data_list[1].encode()))
+                    web_client.send(json.dumps(data_list[1]).encode())
                     refreshed = True
 
             transmit = False

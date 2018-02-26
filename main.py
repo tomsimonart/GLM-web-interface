@@ -72,6 +72,8 @@ def select_plugin(id):
 def webview(id):
     """ Request data from server then render it's template
     """
+    data = '' # No data
+
     # Connection to server
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((server_addr, server_port))
@@ -84,14 +86,18 @@ def webview(id):
     if status == "a:client_connected":
         request = json.dumps({"method": "GET", "data": "refresh"}).encode()
         client.send(request)
-        ack = client.recv(BUFFSIZE).decode()
+        response = client.recv(BUFFSIZE).decode()
+        msg(response)
+        if response:
+            data = json.loads(response)
+        print(data)
 
     else:
         msg("Can't send events", 3)
 
     client.send(b"EOT")
     client.close()
-    return ''
+    return render_template('webview.html', data=data)
 
 
 @app.route('/plugin/<int:id>/<event>')
