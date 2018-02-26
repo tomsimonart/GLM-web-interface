@@ -30,43 +30,42 @@ def handle_plugin(plugin, plugin_id, transmit):
     """ Reads events from the queue then request data to the plugin and
     stores it back to the data list
     """
-    # Check if plugin is outdated
-    if plugin_id < data_list[0]:
-        transmit = False
+    client.send(b"a:client_connected")
 
-    else:
-        while transmit:
-            plugin.settimeout(3) # Add a timeout to wait for plugin
-            status = plugin.recv(BUFFSIZE).decode()
-            if status == "READY":
-                plugin.settimeout(None)
-                # Gets the events from the queue
-                event = event_queue.get() # Blocking
-                plugin.send(json.dumps(event).encode())
-                msg("sent data", 0, "Plugin", event)
+    while transmit:
+        # Check if plugin is outdated
+        if plugin_id < data_list[0]:
+            transmit = False
 
-                # receive data from plugin
-                response = plugin.recv(BUFFSIZE).decode()
-                msg("got data", 0, "Plugin", response)
+        status = plugin.recv(BUFFSIZE).decode()
 
-                if response == "EOT" or response == "": # End of transmission with the plugin
-                    transmit = False
+        if status == "READY":
+            # Gets the events from the queue
+            event = event_queue.get() # Blocking
+            plugin.send(json.dumps(event).encode())
+            msg("sent data", 0, "Plugin", event)
 
-                else:
-                    # Update data in data_list and set refresh_flag to True
-                    msg(response)
-                    print(plugin)
-                    msg(json.loads(response), 3)
-                    data_list[1] = json.loads(response)
-                    data_list[2] += 1
+            # receive data from plugin
+            response = plugin.recv(BUFFSIZE).decode()
+            msg("got data", 0, "Plugin", response)
 
-            elif status == "EOT" or status == "":
-                plugin.settimeout(None)
+            # End of transmission with the plugin
+            if response == "EOT" or response == "":
                 transmit = False
 
             else:
-                plugin.settimeout(None)
-                transmit = False
+                # Update data in data_list and set refresh_flag to True
+                msg(response)
+                print(plugin)
+                msg(json.loads(response), 3)
+                data_list[1] = json.loads(response)
+                data_list[2] += 1
+
+        elif status == "EOT" or status == "":
+            transmit = False
+
+        else:
+            transmit = False
 
     return transmit
 
@@ -76,6 +75,8 @@ def handle_web_client(web_client, web_client_id, transmit):
     the queue, plugin should handle the events and send back adequate data
     that will then be sent back from here to the client
     """
+    client.send(b"a:client_connected")
+
     while transmit:
 
         # Add event to queue
@@ -91,8 +92,10 @@ def handle_web_client(web_client, web_client_id, transmit):
             refreshed = False
             while not refreshed:
                 if refresh_flag < data_list[2]:
+                    data_list[2] += 1
                     web_client.send(json.dumps(data_list[1]).encode())
                     refreshed = True
+                    break
 
             transmit = False
 
@@ -127,14 +130,12 @@ if __name__ == "__main__":
         while True:
             if not end:
                 # Accepting client connection
+                msg("Waiting for client")
                 client, addr = server.accept()
                 user = client.recv(BUFFSIZE).decode() # 1 recv
 
                 # Check if user is a possible name
                 if user == "plugin" or user == "web_client":
-                    # User accepted
-                    client.send(b"a:client_connected") # 1 send
-
                     # If user is plugin then change id in data_list[0]
                     # This is used to verify plugin
                     if user == "plugin":

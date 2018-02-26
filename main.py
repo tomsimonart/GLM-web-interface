@@ -1,5 +1,6 @@
 import json
 import socket
+import traceback
 from GLM import glm
 from random import randint
 from multiprocessing import Process
@@ -36,42 +37,11 @@ def select_plugin(id):
     plugin_loader.start()
     return ''
 
-# @app.route('/plugin/<int:id>/webview')
-# def webview(id):
-#     """ Request data from server then render it's template
-#     """
-#     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     client.connect((server_addr, server_port))
-#
-#     # Send user name
-#     client.send("web_client".encode())
-#     response = client.recv(BUFFSIZE).decode()
-#     msg(response, 0, "plugin_handler")
-#
-#     if response == "a:client_connected":
-#         # Ask for data
-#         request = json.dumps({"method": "GET", "data": "refresh"}).encode()
-#         client.send(request)
-#         # Wait for data
-#         data = client.recv(BUFFSIZE).decode()
-#         print("getjson") # Bloc
-#         if data == "EOF" or data == "":
-#             client.close()
-#         else:
-#             msg(data, 1, "Web data received")
-#             # client.send(b"web data")
-#
-#     else:
-#         msg("Connection refused", 3)
-#
-#     client.close()
-#     return render_template('webview.html', data=data)
-
-
 @app.route('/plugin/<int:id>/webview')
 def webview(id):
     """ Request data from server then render it's template
     """
+
     data = '' # No data
 
     # Connection to server
@@ -86,6 +56,8 @@ def webview(id):
     if status == "a:client_connected":
         request = json.dumps({"method": "GET", "data": "refresh"}).encode()
         client.send(request)
+        print("blocked")
+        # Getting data
         response = client.recv(BUFFSIZE).decode()
         msg(response)
         if response:
