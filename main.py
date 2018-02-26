@@ -3,11 +3,12 @@ import socket
 import traceback
 from GLM import glm
 from random import randint
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 from GLM.source.libs.rainbow import msg
 from flask import Flask, render_template
 
 app = Flask(__name__)
+app.debug = True
 
 glm.PLUGIN_PACKAGE = "GLM.source.plugins"
 PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
@@ -29,6 +30,7 @@ def index():
 
 @app.route('/plugin/<int:id>')
 def select_plugin(id):
+    msg("select_plugin")
     global plugin_loader
     print(id)
     if plugin_loader is not None:
