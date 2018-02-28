@@ -1,0 +1,6 @@
+handle_web_client(): !transmit
+
+* send "a:client_connected" -> web_client
+* web_client -> recv event
+
+# Read events in event_read

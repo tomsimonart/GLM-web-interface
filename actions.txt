@@ -1,0 +1,8 @@
+start a plugin
+{'LOADPLUGIN': 2}
+
+Refresh html from plugin
+{'READ': 'REFRESH'}
+
+Write event to plugin
+{'WRITE': {'0_input': 'sample input', '1_button': 'pressed'}}
