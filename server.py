@@ -62,6 +62,7 @@ def handle_plugin(plugin, plugin_id, transmit):
                 if not data_json or data_json == "EOT":
                     transmit = False
                 else:
+                    msg(data_json, 3)
                     data = json.loads(data_json)
                     data_list[2] += 1
                     data_list[1] = data
@@ -127,10 +128,11 @@ def handle_plugin(plugin, plugin_id, transmit):
     # return transmit
 
 
-def handle_web_client(web_client, web_client_id, transmit, plugin_loader):
+def handle_web_client(web_client, web_client_id, transmit):
     """ This function should be able to receive events from clients and
     execute actions like (spawning a plugin process, sending web data back...)
     """
+    global plugin_loader
     client.send(b"a:client_connected")
 
     while transmit:
@@ -147,9 +149,11 @@ def handle_web_client(web_client, web_client_id, transmit, plugin_loader):
             event_test = event_read.pop("LOADPLUGIN", None)
             if event_test is not None:
                 msg("Plugin phase", 1, "web_client_handler", web_client_id)
+                print(plugin_loader)
                 if plugin_loader is not None:
+                    msg("END IN QUEUE", 3)
                     plugin_loader_queue.put("END")
-                    plugin_loader_queue.join() # Wait for process to end
+                    # plugin_loader_queue.join() # Wait for process to end
                 plugin_loader = multiprocessing.Process(
                     target=glm.plugin_loader,
                     daemon=False,
@@ -201,8 +205,7 @@ def handle_client(client, addr, user, client_id):
             transmit = handle_web_client(
                 client,
                 client_id,
-                transmit,
-                plugin_loader
+                transmit
                 )
 
     # Message for thread ending
