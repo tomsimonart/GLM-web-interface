@@ -6,7 +6,7 @@ import threading
 from GLM import glm
 from sys import argv
 from time import sleep
-from queue import Queue
+from queue import Queue, Empty
 import multiprocessing
 from GLM.source.libs.rainbow import msg
 import traceback
@@ -45,11 +45,49 @@ def handle_plugin(plugin, plugin_id, transmit):
     """
     client.send(b"a:client_connected")
     while transmit:
-        status = plugin.recv(BUFFSIZE).decode()
+        response = plugin.recv(BUFFSIZE).decode()
+        if not response or response == "EOT": # Single receive
+            transmit = False
 
-        # event_queue get REFRESH
+        elif response == "READY":
+            try:
+                event = event_queue.get_nowait() # Waiting for event
+            except Empty:
+                event = None
 
-        # event_queue get DICT type
+            # refresh phase
+            if event == "REFRESH":
+                plugin.send(json.dumps(event).encode())
+                data_json = plugin.recv(BUFFSIZE).decode()
+                if not data_json or data_json == "EOT":
+                    transmit = False
+                else:
+                    data = json.loads(data_json)
+                    data_list[2] += 1
+                    data_list[1] = data
+
+            # event phase
+            elif type(event) == dict:
+                plugin.send(json.dumps(event).encode())
+                status = plugin.recv(BUFFSIZE).decode()
+                if not status or status == "EOT":
+                    transmit = False
+                elif status == "RECEIVED":
+                    # Event received
+                    pass
+
+            else:
+                # Unknown event
+                plugin.send(json.dumps("UNKNOWN").encode())
+                status = plugin.recv(BUFFSIZE).decode()
+                if not status or status == "EOT":
+                    transmit = False
+                elif status == "RETRYING":
+                    # Plugin is trying again
+                    pass
+
+            # Reset event !!!
+            event = None
 
     # while transmit:
     #     # Check if plugin is outdated
@@ -139,7 +177,7 @@ def handle_web_client(web_client, web_client_id, transmit, plugin_loader):
                     while data_state >= data_list[2]:
                         # Event is waiting for refresh
                         sleep(0.2)
-                    web_client.send(data_list[1].encode())
+                    web_client.send(json.dumps(data_list[1]).encode())
 
             # Sending events phase
             event_test = event_read.pop("WRITE", None)

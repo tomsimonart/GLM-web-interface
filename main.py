@@ -10,6 +10,8 @@ from flask import Flask, render_template
 app = Flask(__name__)
 app.debug = True
 
+PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
+
 server_addr = 'localhost'
 server_port = 9999
 
