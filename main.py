@@ -29,7 +29,7 @@ def index():
 
 @app.route('/plugin/<int:id>')
 def select_plugin(id):
-    msg("select_plugin")
+    msg("Plugin selected")
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((server_addr, server_port))
     client.send(b"web_client")
