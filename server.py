@@ -29,7 +29,7 @@ server_addr = (addr, port)
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Re-use port
 server.bind(server_addr)
-server.listen(2)
+server.listen(100)
 
 # All events coming from web clients
 event_queue = Queue()
@@ -150,7 +150,7 @@ def handle_web_client(web_client, web_client_id, transmit):
                 if plugin_loader is not None:
                     plugin_loader_queue.put("END")
                     while not plugin_loader_queue.empty():
-                        sleep(0.2)
+                        print('ending')
                 plugin_loader = multiprocessing.Process(
                     target=glm.plugin_loader,
                     daemon=False,
@@ -158,8 +158,8 @@ def handle_web_client(web_client, web_client_id, transmit):
                         glm.plugin_scan(PLUGIN_DIRECTORY)[event_test], # id
                         plugin_loader_queue,
                         True, # start
-                        False, # matrix
-                        True, # show
+                        True, # matrix
+                        False, # show
                         False # guishow
                         )
                     )
@@ -215,7 +215,9 @@ if __name__ == "__main__":
         while True:
             if not end:
                 # Accepting client connection
+                print(server)
                 client, addr = server.accept()
+                print(client)
                 user = client.recv(BUFFSIZE).decode() # 1 recv
 
                 # Check if user is a possible name
@@ -224,20 +226,22 @@ if __name__ == "__main__":
                     # This is used to verify plugin
                     if user == "plugin":
                         data_list[0] = client_id
-                else:
-                    # Bad user
-                    client.send(b"e:bad_user")
-                    msg("Refused", 2, "Server", user, client_id)
 
-                client_handler = threading.Thread(
+                    client_handler = threading.Thread(
                     name=user + "_" + str(client_id),
                     target=handle_client,
                     args=(client, addr, user, client_id),
                     daemon=True
                     )
-                msg(client_handler.getName(), 0, "Thread", user, client_id)
-                client_handler.start()
-                client_id += 1
+                    msg(client_handler.getName(), 0, "Thread", user, client_id)
+                    client_handler.start()
+                    client_id += 1
+
+                else:
+                    # Bad user
+                    client.send(b"e:bad_user")
+                    msg("Refused", 2, "Server", user, client_id)
+
             else:
                 server.close()
                 msg("Terminating",  2, "Server")

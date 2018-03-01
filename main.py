@@ -31,16 +31,22 @@ def index():
 def select_plugin(id):
     msg("Plugin selected")
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((server_addr, server_port))
-    client.send(b"web_client")
-    status = client.recv(BUFFSIZE).decode()
-    if status == "a:client_connected":
-        event = json.dumps({"LOADPLUGIN": id}).encode()
-        client.send(event)
-        status = client.recv(BUFFSIZE).decode()
 
-    client.send(b"EOT")
-    client.close()
+    try:
+        client.connect((server_addr, server_port))
+    except socket.error as error:
+        if error.errno == socket.errno.ECONNREFUSED:
+            msg("refused", 3)
+    else:
+        client.send(b"web_client")
+        status = client.recv(BUFFSIZE).decode()
+        if status == "a:client_connected":
+            event = json.dumps({"LOADPLUGIN": id}).encode()
+            client.send(event)
+            status = client.recv(BUFFSIZE).decode()
+
+            client.send(b"EOT")
+            client.close()
     return ''
 
 @app.route('/plugin/<int:id>/webview')
@@ -50,16 +56,21 @@ def webview(id):
     data = '' # No data
     # Connection to server
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((server_addr, server_port))
-    client.send(b"web_client")
-    status = client.recv(BUFFSIZE).decode()
-    if status == "a:client_connected":
-        event = json.dumps({"READ": "REFRESH"}).encode()
-        client.send(event)
-        data = client.recv(BUFFSIZE).decode()
+    try:
+        client.connect((server_addr, server_port))
+    except socket.error as error:
+        if error.errno == socket.errno.ECONNREFUSED:
+            msg("refused", 3)
+    else:
+        client.send(b"web_client")
+        status = client.recv(BUFFSIZE).decode()
+        if status == "a:client_connected":
+            event = json.dumps({"READ": "REFRESH"}).encode()
+            client.send(event)
+            data = client.recv(BUFFSIZE).decode()
 
-    client.send(b"EOT")
-    client.close()
+        client.send(b"EOT")
+        client.close()
     return render_template('webview.html', data=data)
 
 
