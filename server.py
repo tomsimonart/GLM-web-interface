@@ -16,6 +16,7 @@ end = False
 
 addr = "localhost"
 port = 9999
+clients = {}
 
 glm.PLUGIN_PACKAGE = "GLM.source.plugins"
 PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
@@ -29,7 +30,7 @@ server_addr = (addr, port)
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Re-use port
 server.bind(server_addr)
-server.listen(100)
+server.listen(0)
 
 # All events coming from web clients
 event_queue = Queue()
@@ -89,42 +90,8 @@ def handle_plugin(plugin, plugin_id, transmit):
             # Reset event !!!
             event = None
 
-    # while transmit:
-    #     # Check if plugin is outdated
-    #     if plugin_id < data_list[0]:
-    #         transmit = False
-    #
-    #     status = plugin.recv(BUFFSIZE).decode()
-    #
-    #     if status == "READY":
-    #         # Gets the events from the queue
-    #         event = event_queue.get() # Blocking
-    #         plugin.send(json.dumps(event).encode())
-    #         msg("sent data", 0, "Plugin", event)
-    #
-    #         # receive data from plugin
-    #         response = plugin.recv(BUFFSIZE).decode()
-    #         msg("got data", 0, "Plugin", response)
-    #
-    #         # End of transmission with the plugin
-    #         if response == "EOT" or response == "":
-    #             transmit = False
-    #
-    #         else:
-    #             # Update data in data_list and set refresh_flag to True
-    #             msg(response)
-    #             print(plugin)
-    #             msg(json.loads(response), 3)
-    #             data_list[1] = json.loads(response)
-    #             data_list[2] += 1
-    #
-    #     elif status == "EOT" or status == "":
-    #         transmit = False
-    #
-    #     else:
-    #         transmit = False
-    #
-    # return transmit
+    plugin.close()
+    return transmit
 
 
 def handle_web_client(web_client, web_client_id, transmit):
@@ -151,6 +118,7 @@ def handle_web_client(web_client, web_client_id, transmit):
                     plugin_loader_queue.put("END")
                     while not plugin_loader_queue.empty():
                         print('ending')
+                        sleep(0.1)
                 plugin_loader = multiprocessing.Process(
                     target=glm.plugin_loader,
                     daemon=False,
@@ -173,9 +141,12 @@ def handle_web_client(web_client, web_client_id, transmit):
                     # TODO web_client.send(data_list[1].encode())
                     data_state = data_list[2]
                     event_queue.put(event_test)
-                    while data_state >= data_list[2]:
+                    while data_state == data_list[2] or not event_queue.empty():
                         # Event is waiting for refresh
-                        sleep(0.2)
+                        if event_queue.empty():
+                            event_queue.put(event_test)
+                        # sleep(0.5)
+
                     web_client.send(json.dumps(data_list[1]).encode())
 
             # Sending events phase
@@ -185,6 +156,7 @@ def handle_web_client(web_client, web_client_id, transmit):
                 event_queue.put(event_test)
                 web_client.send("status:got_event")
 
+    web_client.close()
     return transmit
 
 
@@ -215,9 +187,11 @@ if __name__ == "__main__":
         while True:
             if not end:
                 # Accepting client connection
-                print(server)
                 client, addr = server.accept()
-                print(client)
+                # clients[client] = addr
+                # for c in clients.keys():
+                #     msg(str(c), 1, str(clients[c]))
+                # msg(str(len(clients)), 3)
                 user = client.recv(BUFFSIZE).decode() # 1 recv
 
                 # Check if user is a possible name
@@ -248,6 +222,6 @@ if __name__ == "__main__":
                 break
     except KeyboardInterrupt:
         print()
-        traceback.print_exc()
+        # traceback.print_exc()
         msg("Interruption", 3, "Server", server)
         server.close()
