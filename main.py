@@ -36,7 +36,7 @@ def select_plugin(id):
         client.connect((server_addr, server_port))
     except socket.error as error:
         if error.errno == socket.errno.ECONNREFUSED:
-            msg("refused", 3)
+            msg("connection refused with server", 3)
     else:
         client.send(b"web_client")
         status = client.recv(BUFFSIZE).decode()
@@ -60,7 +60,7 @@ def webview(id):
         client.connect((server_addr, server_port))
     except socket.error as error:
         if error.errno == socket.errno.ECONNREFUSED:
-            msg("refused", 3)
+            msg("connection refused with server", 3)
     else:
         client.send(b"web_client")
         status = client.recv(BUFFSIZE).decode()

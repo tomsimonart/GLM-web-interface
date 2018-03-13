@@ -126,7 +126,7 @@ def handle_web_client(web_client, web_client_id, transmit):
                         glm.plugin_scan(PLUGIN_DIRECTORY)[event_test], # id
                         plugin_loader_queue,
                         True, # start
-                        True, # matrix
+                        False, # matrix
                         False, # show
                         False # guishow
                         )
