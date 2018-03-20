@@ -14,6 +14,8 @@ with
 ## Starting
 * Install python packages (**Using "**virtualenv**" is recommended**)
 >```pip install -r requirements.txt```
+* Start the server
+>```python3 ./server.py 9999```
 * Start flask
 >```source launch.sh```
 
