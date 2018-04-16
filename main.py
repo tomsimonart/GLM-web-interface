@@ -16,7 +16,7 @@ server_addr = 'localhost'
 server_port = 9999
 
 BUFFSIZE = 512
-
+VERBOSITY = 3
 
 @app.route('/')
 def index():
@@ -29,14 +29,14 @@ def index():
 
 @app.route('/plugin/<int:id>')
 def select_plugin(id):
-    msg("Plugin selected")
+    msg("Plugin selected", level=2)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
         client.connect((server_addr, server_port))
     except socket.error as error:
         if error.errno == socket.errno.ECONNREFUSED:
-            msg("connection refused with server", 3)
+            msg("connection refused with server", 3, level=0)
     else:
         client.send(b"web_client")
         status = client.recv(BUFFSIZE).decode()
@@ -60,7 +60,7 @@ def webview(id):
         client.connect((server_addr, server_port))
     except socket.error as error:
         if error.errno == socket.errno.ECONNREFUSED:
-            msg("connection refused with server", 3)
+            msg("connection refused with server", 3, level=0)
     else:
         client.send(b"web_client")
         status = client.recv(BUFFSIZE).decode()

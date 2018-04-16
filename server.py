@@ -13,6 +13,7 @@ from GLM.source.libs.rainbow import msg
 
 BUFFSIZE = 512
 end = False
+VERBOSITY = 0
 
 addr = "localhost"
 port = 9999
@@ -152,7 +153,7 @@ def handle_web_client(web_client, web_client_id, transmit):
             # Sending events phase
             event_test = event_read.pop("WRITE", None)
             if event_test is not None:
-                msg("Sending events phase", 1, "web_client_handler", web_client_id)
+                msg("Sending events phase", 1, "web_client_handler", web_client_id, level=2)
                 event_queue.put(event_test)
                 web_client.send("status:got_event")
 
@@ -176,22 +177,18 @@ def handle_client(client, addr, user, client_id):
                 )
 
     # Message for thread ending
-    msg(user + "_" + str(client_id), 2, "Thread", transmit)
+    msg(user + "_" + str(client_id), 2, "Thread", transmit, level=3)
     return None
 
 
 if __name__ == "__main__":
     try:
-        msg("Starting", 1, "Server", server_addr)
+        msg("Starting", 1, "Server", server_addr, level=1)
         client_id = 0
         while True:
             if not end:
                 # Accepting client connection
                 client, addr = server.accept()
-                # clients[client] = addr
-                # for c in clients.keys():
-                #     msg(str(c), 1, str(clients[c]))
-                # msg(str(len(clients)), 3)
                 user = client.recv(BUFFSIZE).decode() # 1 recv
 
                 # Check if user is a possible name
@@ -207,21 +204,20 @@ if __name__ == "__main__":
                     args=(client, addr, user, client_id),
                     daemon=True
                     )
-                    msg(client_handler.getName(), 0, "Thread", user, client_id)
+                    msg(client_handler.getName(), 0, "Thread", user, client_id, level=3)
                     client_handler.start()
                     client_id += 1
 
                 else:
                     # Bad user
                     client.send(b"e:bad_user")
-                    msg("Refused", 2, "Server", user, client_id)
+                    msg("Refused", 2, "Server", user, client_id, level=0)
 
             else:
                 server.close()
-                msg("Terminating",  2, "Server")
+                msg("Terminating",  2, "Server", level=1) # Ending server thread
                 break
     except KeyboardInterrupt:
         print()
-        # traceback.print_exc()
-        msg("Interruption", 3, "Server", server)
+        msg("Interruption", 3, "Server", server, level=1)
         server.close()
