@@ -37,6 +37,9 @@ rel_path = path.join(dir, 'GLM/verbosity')
 
 with open(rel_path, 'w') as f:
     f.write(str(args.verbose)+'\n')
+    if args.sverbose is not None:
+        for arg in args.sverbose:
+            f.write(arg+'\n')
 clients = {}
 
 
