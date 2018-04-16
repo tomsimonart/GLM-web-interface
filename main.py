@@ -16,7 +16,6 @@ server_addr = 'localhost'
 server_port = 9999
 
 BUFFSIZE = 512
-VERBOSITY = 3
 
 @app.route('/')
 def index():

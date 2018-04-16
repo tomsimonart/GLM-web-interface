@@ -2,9 +2,11 @@
 
 import json
 import socket
+import argparse
 import threading
 import traceback
 import multiprocessing
+from os import path
 from GLM import glm
 from sys import argv
 from time import sleep
@@ -13,20 +15,35 @@ from GLM.source.libs.rainbow import msg
 
 BUFFSIZE = 512
 end = False
-VERBOSITY = 0
-
-addr = "localhost"
-port = 9999
-clients = {}
 
 glm.PLUGIN_PACKAGE = "GLM.source.plugins"
 PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
 plugin_loader = None
 
-if len(argv) >= 2 and argv[1].isdecimal():
-    port = int(argv[1])
+parser = argparse.ArgumentParser(description="Serve GLM")
+parser.add_argument('--host', help='Host', default='localhost', type=str)
+parser.add_argument('--port', '-p', help='Port', default=9999, type=int)
+parser.add_argument('--verbose', '-v', action='count', help='Verbose level', default=0)
+parser.add_argument('--sverbose', '-V', help='Special verbosity', action='append', type=str)
+parser.add_argument('--matrix', '-m', help='Matrix enabled', action='store_true')
+parser.add_argument('--show', '-s', help='Virtual matrix enabled',
+action='store_true')
+parser.add_argument('--guishow', '-g', help='GUI enabled', action='store_true')
 
-server_addr = (addr, port)
+args = parser.parse_args()
+
+dir = path.dirname(__file__)
+rel_path = path.join(dir, 'GLM/verbosity')
+
+with open(rel_path, 'w') as f:
+    f.write(str(args.verbose)+'\n')
+clients = {}
+
+
+# if len(argv) >= 2 and argv[1].isdecimal():
+#     port = int(argv[1])
+
+server_addr = (args.host, args.port)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Re-use port
@@ -127,9 +144,9 @@ def handle_web_client(web_client, web_client_id, transmit):
                         glm.plugin_scan(PLUGIN_DIRECTORY)[event_test], # id
                         plugin_loader_queue,
                         True, # start
-                        False, # matrix
-                        False, # show
-                        False # guishow
+                        args.matrix, # matrix
+                        args.show, # show
+                        args.guishow # guishow
                         )
                     )
                 plugin_loader.start()
