@@ -81,11 +81,11 @@ def event(id, event):
     client.send("web_client")
     status = client.recv(BUFFSIZE).decode()
     if status == "a:client_connected":
-        event = json.dumps(
-            {'WRITE': {'0_input': 'sample input', '1_button': 'pressed'}}
-            ).encode()
-        client.send(event)
-        status = client.recv(BUFFSIZE).decode()
+        if event:
+            # Event must be json
+            event = event.encode()
+                client.send(event)
+                status = client.recv(BUFFSIZE).decode()
 
     client.send(b"EOT")
     client.close()
