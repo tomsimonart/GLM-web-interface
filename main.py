@@ -84,8 +84,8 @@ def event(id, event):
         if event:
             # Event must be json
             event = event.encode()
-                client.send(event)
-                status = client.recv(BUFFSIZE).decode()
+            client.send(event)
+            status = client.recv(BUFFSIZE).decode()
 
     client.send(b"EOT")
     client.close()
