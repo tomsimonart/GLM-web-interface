@@ -239,5 +239,7 @@ if __name__ == "__main__":
                 break
     except KeyboardInterrupt:
         print()
+        with open(rel_path, 'w') as f:
+            f.write('1\n')
         msg("Interruption", 3, "Server", server, level=1)
         server.close()
