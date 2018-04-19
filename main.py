@@ -81,9 +81,12 @@ def event():
         client.connect((server_addr, server_port))
         client.send(b"web_client")
         status = client.recv(BUFFSIZE).decode()
-        msg("POST data", 0, "event", request.values['id'] + request.values['data'], level=3, slevel='event')
+
+        msg("POST data", 0, "event", request.values['id'] + ' ' + request.values['value'], level=3, slevel='event')
+
         # {'WRITE': {'0_input': 'sample input', '1_button': 'pressed'}}
-        event_raw = {'WRITE': {request.values['id']: request.values['data']}}
+        event_raw = {'WRITE': {request.values['id']: request.values['value']}}
+
         event = json.dumps(event_raw)
         if status == "a:client_connected":
             if event:

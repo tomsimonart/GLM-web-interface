@@ -157,19 +157,8 @@
                 </div>
             </div>
             <div id="webview" class="col-xs-12 col-lg-4 col-md-6" style="background-color:grey;">
-                <script type="text/javascript">
-                    function send_event(e) {
-                        console.log('sent_event ' + e.id);
-                        $.post(
-                            '/plugin/event/',
-                            {id:e.id, data:e.data-e},
-                            function(data, status){
-                                alert(data+'\n'+status);
-                            }
-                        );
-                    };
-                </script>
-                <button id='button_test' data-e='custom' onclick='send_event(this)'>click me!</button>
+
+                <button id='button_test' data-e='custom' onclick='send_event(this)' value='button_test'>click me!</button>
                 <!-- space for plugin content -->
             </div>
         </div>
