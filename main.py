@@ -5,7 +5,7 @@ from GLM import glm
 from random import randint
 from GLM.source.libs.rainbow import msg
 from multiprocessing import Process, Queue
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 app.debug = True
@@ -73,20 +73,25 @@ def webview(id):
     return render_template('webview.html', data=data)
 
 
-@app.route('/plugin/<int:id>/<event>')
-def event(id, event):
-    # Need to open a event client on each plugins
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((server_addr, server_port))
-    client.send("web_client")
-    status = client.recv(BUFFSIZE).decode()
-    if status == "a:client_connected":
-        if event:
-            # Event must be json
-            event = event.encode()
-            client.send(event)
-            status = client.recv(BUFFSIZE).decode()
+@app.route('/plugin/event/', methods=['POST'])
+def event():
+    if request.method == "POST":
+        msg("got POST method", 0, "event", level=3, slevel='event')
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((server_addr, server_port))
+        client.send(b"web_client")
+        status = client.recv(BUFFSIZE).decode()
+        msg("POST data", 0, "event", request.values['id'] + request.values['data'], level=3, slevel='event')
+        # {'WRITE': {'0_input': 'sample input', '1_button': 'pressed'}}
+        event_raw = {'WRITE': {request.values['id']: request.values['data']}}
+        event = json.dumps(event_raw)
+        if status == "a:client_connected":
+            if event:
+                # Event must be json
+                event = event.encode()
+                client.send(event)
+                status = client.recv(BUFFSIZE).decode()
 
-    client.send(b"EOT")
-    client.close()
-    return ''
+        client.send(b"EOT")
+        client.close()
+        return ''

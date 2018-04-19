@@ -175,7 +175,7 @@ def handle_web_client(web_client, web_client_id, transmit):
             if event_test is not None:
                 msg("Sending events phase", 1, "web_client_handler", web_client_id, level=2)
                 event_queue.put(event_test)
-                web_client.send("status:got_event")
+                web_client.send(b"status:got_event")
 
     web_client.close()
     return transmit
