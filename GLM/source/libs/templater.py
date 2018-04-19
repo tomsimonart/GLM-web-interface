@@ -19,9 +19,20 @@ class Templater():
             '\n': self.add_line
             }
 
+    def edit_value(self, id_, value=''):
+        if id_ in self.id_table.keys() and type(value) == str:
+            self.id_table[id_][1] = value
+        else:
+            msg(
+                'id does not exist or value is not a string',
+                2,
+                'Templater.edit_value',
+                level=0
+                )
+
+
     def render(self):
-        html = """<script type="text/javascript">function send_event(e){console.log('sent_event'+e.id);$.post('/plugin/event/',{id:e.id,value:e.value});};</script>
-        """ # AJAX sender
+        html = """<script type="text/javascript">function send_event(e){console.log('sent_event'+e.id);$.post('/plugin/event/',{id:e.id,value:e.value});};</script>""".strip('\n') # AJAX sender
         for id_ in self.pre_render:
             html += self.elements[self.id_table[id_][0]](self.id_table[id_], id_)
         msg(html, 0, 'render', level=4, slevel='html')
@@ -79,10 +90,10 @@ class Templater():
             """
             if tag_type == self.stags[0]: # {{
                 parsed_tag = tag.split(';')
-                self.id_table[parsed_tag[1]] = [parsed_tag[0]]
+                self.id_table[parsed_tag[0]] = [parsed_tag[1]]
                 if len(parsed_tag) >= 3:
-                    self.id_table[parsed_tag[1]].extend(parsed_tag[2:])
-                self.pre_render.append(parsed_tag[1])
+                    self.id_table[parsed_tag[0]].extend(parsed_tag[2:])
+                self.pre_render.append(parsed_tag[0])
 
             elif tag_type == self.stags[1]: # {%
                 self.html_id, id_ = get_html_id(self.html_id)

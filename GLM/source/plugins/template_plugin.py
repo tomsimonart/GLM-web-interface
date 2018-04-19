@@ -30,9 +30,9 @@ class Plugin():
 
     def make_layout(self):
         self.template = """\
-        {{ label;title;My Input Label }}{{ input;matrix_text;example }}{# Comment #}
+        {{ title;label;My Input Label }}{{ matrix_text;input;example }}{# Comment #}
         {% <h1>Raw html</h1> %}{# ID cannot start with html_ #}
-        {{button;submit;My Button}}
+        {{submit;button;My Button}}
         """
         self.templater = Templater(self.template)
         self.templater.parse()
@@ -60,6 +60,10 @@ class Plugin():
                     event = json.loads(event_json)
                     if 'matrix_text' in event.keys():
                         self.sample_text.edit(event['matrix_text'].lower())
+                        self.templater.edit_value(
+                            'matrix_text',
+                            event['matrix_text'].lower()
+                            )
                         print(self.templater.id_table)
                     if 'submit' in event.keys():
                         self.sample_text.edit('reset')
