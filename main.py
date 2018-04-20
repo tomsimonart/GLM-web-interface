@@ -5,7 +5,7 @@ from GLM import glm
 from random import randint
 from GLM.source.libs.rainbow import msg
 from multiprocessing import Process, Queue
-from flask import Flask, render_template, request
+from flask import Flask, render_template, redirect, request
 
 app = Flask(__name__)
 app.debug = True
@@ -19,11 +19,36 @@ BUFFSIZE = 512
 
 @app.route('/')
 def index():
-    plugins = list(map(
-        lambda x: x.replace('_', ' ').replace('.py', ''),
-        glm.plugin_scan(PLUGIN_DIRECTORY)
-    ))
-    return render_template('main.html', plugins=enumerate(plugins))
+
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        client.connect((server_addr, server_port))
+    except socket.error as error:
+        if error.errno == socket.errno.ECONNREFUSED:
+            msg("connection refused with server", 3, level=0)
+    else:
+        client.send(b"web_client")
+        status = client.recv(BUFFSIZE).decode()
+        if status == "a:client_connected":
+            event = json.dumps({"CHECK": ""}).encode()
+            client.send(event)
+            id_ = client.recv(BUFFSIZE).decode()
+
+            if id_ != 'None':
+                # return redirect('/plugin/' + id_ + '/webview', code=303)
+                plugins = list(map(
+                    lambda x: x.replace('_', ' ').replace('.py', ''),
+                    glm.plugin_scan(PLUGIN_DIRECTORY)
+                ))
+                return render_template('main.html', plugins=enumerate(plugins), plugin_id=int(id_))
+
+            else:
+                plugins = list(map(
+                    lambda x: x.replace('_', ' ').replace('.py', ''),
+                    glm.plugin_scan(PLUGIN_DIRECTORY)
+                ))
+                return render_template('main.html', plugins=enumerate(plugins), plugin_id=-1)
 
 
 @app.route('/plugin/<int:id>')
@@ -81,8 +106,6 @@ def event():
         client.connect((server_addr, server_port))
         client.send(b"web_client")
         status = client.recv(BUFFSIZE).decode()
-
-        msg("POST data", 0, "event", request.values['id'] + ' ' + request.values['value'], level=3, slevel='event')
 
         # {'WRITE': {'0_input': 'sample input', '1_button': 'pressed'}}
         event_raw = {'WRITE': {request.values['id']: request.values['value']}}

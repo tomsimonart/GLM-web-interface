@@ -2,6 +2,6 @@
 
 <html>
 {% autoescape false %}
-{{ data }}
+{{ data.strip('"').strip('\n') }}
 {% endautoescape %}
 </html>

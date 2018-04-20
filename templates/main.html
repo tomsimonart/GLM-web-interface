@@ -85,6 +85,12 @@
             background-color: whitesmoke;
             height: 30px;
         }
+
+        #webview {
+            border-radius: 5px;
+            padding: 15px;
+            background: linear-gradient(salmon, crimson);
+        }
     </style>
     <script type="text/javascript">
         function select_plugin(e) {
@@ -112,6 +118,15 @@
             });
         };
     </script>
+    {% if plugin_id >= 0 %}
+    <meta id="my-data" data-name="{{ plugin_id }}">
+    <script type="text/javascript">
+        $(document).ready(function load_webview(){
+            console.log('load webview', "{{ plugin_id }}");
+            $('#webview').load('/plugin/' + "{{ plugin_id }}" + '/webview');
+        });
+    </script>
+    {% endif %}
     <style type="text/css">
         body,
         html {
@@ -156,8 +171,7 @@
                     </div>
                 </div>
             </div>
-            <div id="webview" class="col-xs-12 col-lg-4 col-md-6" style="background-color:grey;">
-                <button id='button_test' data-e='custom' onclick='send_event(this)' value='button_test'>click me!</button>
+            <div id="webview" class="col-xs-12 col-lg-4 col-md-6">
                 <!-- space for plugin content -->
             </div>
         </div>

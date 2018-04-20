@@ -57,6 +57,7 @@ server.listen(0)
 event_queue = Queue()
 # Html data or forms container [id, data, refresh_flag_int]
 data_list = [0, "", 0]
+current_plugin_id = []
 
 plugin_loader_queue = multiprocessing.Queue()
 
@@ -132,13 +133,29 @@ def handle_web_client(web_client, web_client_id, transmit):
         else:
             event_read = json.loads(event)
 
+            # Check if plugin is loaded phase
+            event_test = event_read.pop("CHECK", None)
+            if event_test is not None:
+                if plugin_loader is not None:
+                    web_client.send(str(current_plugin_id[0]).encode())
+                else:
+                    web_client.send(b'None')
+
+
             # Plugin loading phase
             event_test = event_read.pop("LOADPLUGIN", None)
             if event_test is not None:
+                current_plugin_id.clear()
+                current_plugin_id.append(event_test)
                 if plugin_loader is not None:
                     plugin_loader_queue.put("END")
                     while not plugin_loader_queue.empty():
-                        print('ending')
+                        msg(
+                            'waiting for plugin',
+                            1,
+                            'server.handle_web_client',
+                            level=1
+                            )
                         sleep(0.1)
                 plugin_loader = multiprocessing.Process(
                     target=glm.plugin_loader,
@@ -159,14 +176,12 @@ def handle_web_client(web_client, web_client_id, transmit):
             event_test = event_read.pop("READ", None)
             if event_test is not None:
                 if event_test == "REFRESH":
-                    # TODO web_client.send(data_list[1].encode())
                     data_state = data_list[2]
                     event_queue.put(event_test)
                     while data_state == data_list[2] or not event_queue.empty():
                         # Event is waiting for refresh
                         if event_queue.empty():
                             event_queue.put(event_test)
-                        # sleep(0.5)
 
                     web_client.send(json.dumps(data_list[1]).encode())
 

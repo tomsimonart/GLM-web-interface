@@ -30,7 +30,6 @@ class Templater():
                 level=0
                 )
 
-
     def render(self):
         html = """<script type="text/javascript">function send_event(e){console.log('sent_event'+e.id);$.post('/plugin/event/',{id:e.id,value:e.value});};</script>""".strip('\n') # AJAX sender
         for id_ in self.pre_render:
@@ -151,12 +150,3 @@ class Templater():
     def add_line(self, extra, id_):
         """\n"""
         return '<br>'
-
-
-if __name__ == '__main__':
-    template = """{{ label;label_0;My Input Label }}{{ input;form_0;input label }}{# Comment #}
-    {% <h1>Raw html</h1> %}{# ID cannot start with html_ #}}
-    {{button;button_0;My Button}}"""
-    templater = Templater(template)
-    templater.parse()
-    print(templater.render())
