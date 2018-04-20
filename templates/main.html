@@ -117,6 +117,38 @@
                 }
             });
         };
+
+        // function poll_plugin_update() {
+        //     console.log('poll plugin update ');
+        //
+        //     $.ajax({
+        //         url: '/plugin/' + e.value,
+        //         method: 'GET',
+        //         error: function(xhr, status, err) {
+        //             console.log(xhr, status, err.toString());
+        //         }
+        //     });
+        //
+        //     $('#webview').load('/plugin/' + e.value + '/webview')
+        // };
+
+        function poll_plugin_update() {
+            setTimeout(function(){
+                $.ajax({
+                    url: "/update",
+                    type: "GET",
+                    success: function(){
+                        console.log('polling');
+                        },
+                    dataType: "json",
+                    complete: poll_plugin_update,
+                    timeout: 2000
+                    },
+                )}, 1000);
+        };
+
+        poll_plugin_update();
+
     </script>
     {% if plugin_id >= 0 %}
     <meta id="my-data" data-name="{{ plugin_id }}">

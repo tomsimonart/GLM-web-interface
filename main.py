@@ -50,6 +50,10 @@ def index():
                 ))
                 return render_template('main.html', plugins=enumerate(plugins), plugin_id=-1)
 
+@app.route('/update')
+def send_update():
+    return render_template('update.html', update=1)
+
 
 @app.route('/plugin/<int:id>')
 def select_plugin(id):
