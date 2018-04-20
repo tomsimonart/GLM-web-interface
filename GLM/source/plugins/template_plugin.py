@@ -22,11 +22,16 @@ class Plugin():
                 guishow=guishow,
                 fps=0.333
                 )
+            self.client = WebClient(process_events) # Initialize web client
+
             self.make_layout() # Create screen layout and process web template
-            # Initialize web client
-            self.client = WebClient(self.data, process_events)
             self._start() # Start plugin loop
 
+    def refresh_template(self):
+        """ Render the template again and send it to the client
+        """
+        self.data = self.templater.render()
+        self.client.set_data(self.data)
 
     def make_layout(self):
         self.template = """\
@@ -36,7 +41,7 @@ class Plugin():
         """
         self.templater = Templater(self.template)
         self.templater.parse()
-        self.data = self.templater.render()
+        self.refresh_template()
 
         self.sample_text = Text('example')
         self.screen.add(self.sample_text, refresh=False, x=6, y=7, name='entry')
@@ -64,8 +69,10 @@ class Plugin():
                             'matrix_text',
                             event['matrix_text'].lower()
                             )
-                        print(self.templater.id_table)
+                        self.refresh_template()
                     if 'submit' in event.keys():
                         self.sample_text.edit('reset')
+                        self.templater.edit_value('matrix_text', 'reset')
+                        self.refresh_template()
 
                 self.screen.refresh()

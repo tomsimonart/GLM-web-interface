@@ -15,8 +15,8 @@ BUFFSIZE = 512
 class WebClient():
     def __init__(
             self,
-            data,
             process_events,
+            data='<p>No Layout</p>',
             server_ip="localhost",
             server_port=9999
             ):
@@ -41,6 +41,11 @@ class WebClient():
         self._set_connected(False)
         self.client.send(b"EOT")
         self.client.close()
+
+    def set_data(self, data):
+        """ Updates the rendered web data
+        """
+        self.data = data
 
     def _get_data(self):
         """ Get web data from plugin in encoded json format
