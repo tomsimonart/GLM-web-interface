@@ -180,8 +180,7 @@ def handle_web_client(web_client, web_client_id, transmit):
                     event_queue.put(event_test)
                     while data_state == data_list[2] or not event_queue.empty():
                         # Event is waiting for refresh
-                        if event_queue.empty():
-                            event_queue.put(event_test)
+                        pass
 
                     web_client.send(json.dumps(data_list[1]).encode())
 
