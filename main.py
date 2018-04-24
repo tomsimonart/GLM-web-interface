@@ -52,7 +52,28 @@ def index():
 
 @app.route('/update')
 def send_update():
-    return render_template('update.html', update=1)
+    """ Polling update state from plugin
+    """
+    data = 0 # No data
+    # Connection to server
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((server_addr, server_port))
+    except socket.error as error:
+        if error.errno == socket.errno.ECONNREFUSED:
+            msg("connection refused with server", 3, level=0)
+    else:
+        client.send(b"web_client")
+        status = client.recv(BUFFSIZE).decode()
+        if status == "a:client_connected":
+            event = json.dumps({"READ": "UPDATE"}).encode()
+            client.send(event)
+            data = client.recv(BUFFSIZE).decode()
+
+        client.send(b"EOT")
+        client.close()
+
+    return render_template('update.html', update=str(json.loads(data)))
 
 
 @app.route('/plugin/<int:id>')
@@ -99,7 +120,7 @@ def webview(id):
 
         client.send(b"EOT")
         client.close()
-    return render_template('webview.html', data=data)
+    return render_template('webview.html', data=json.loads(data))
 
 
 @app.route('/plugin/event/', methods=['POST'])

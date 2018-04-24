@@ -29,6 +29,7 @@ class WebClient():
 
         self.process_events = process_events
         self.data = data
+        self.state = 0
         self.events = queue.Queue()
 
     def _set_connected(self, connected):
@@ -46,11 +47,15 @@ class WebClient():
         """ Updates the rendered web data
         """
         self.data = data
+        self.state += 1
 
     def _get_data(self):
         """ Get web data from plugin in encoded json format
         """
         return json.dumps(self.data).encode()
+
+    def _get_state(self):
+        return json.dumps(self.state).encode()
 
     def get_event(self):
         """ Send event to plugin if there is one, otherwise None
@@ -101,10 +106,14 @@ class WebClient():
 
                     else:
                         event = json.loads(event_json)
+                        msg('EVENT ' + str(event)) # Debug
 
                         # refresh phase
                         if event == "REFRESH":
                             self.client.send(self._get_data())
+
+                        elif event == "UPDATE":
+                            self.client.send(self._get_state())
 
                         # event phase
                         elif type(event) == dict:

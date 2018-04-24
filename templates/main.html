@@ -119,10 +119,11 @@
         };
 
         function poll_plugin_update() {
+            console.log("polling...");
             setTimeout(function(){
                 $('#update').load('/update');
                 poll_plugin_update();
-                }, 2000);
+            }, 3000);
         };
 
         poll_plugin_update();

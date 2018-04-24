@@ -55,8 +55,8 @@ server.listen(0)
 
 # All events coming from web clients
 event_queue = Queue()
-# Html data or forms container [id, data, refresh_flag_int]
-data_list = [0, "", 0]
+# Html data or forms container [id, data, refresh_count]
+data_list = [0, "", 0, 0]
 current_plugin_id = []
 
 plugin_loader_queue = multiprocessing.Queue()
@@ -68,15 +68,20 @@ def handle_plugin(plugin, plugin_id, transmit):
     """
     client.send(b"a:client_connected")
     while transmit:
+        msg('SHOULD do this a couple times') # Debug
         response = plugin.recv(BUFFSIZE).decode()
         if not response or response == "EOT": # Single receive
             transmit = False
 
         elif response == "READY":
             try:
-                event = event_queue.get_nowait() # Waiting for event
+                event = event_queue.get() # Waiting for event
             except Empty:
                 event = None
+            else:
+                pass
+
+            msg('QUEUE EVENT', 2, str(event)) # Debug
 
             # refresh phase
             if event == "REFRESH":
@@ -88,6 +93,16 @@ def handle_plugin(plugin, plugin_id, transmit):
                     data = json.loads(data_json)
                     data_list[2] += 1
                     data_list[1] = data
+
+            if event == "UPDATE":
+                plugin.send(json.dumps(event).encode())
+                data_json = plugin.recv(BUFFSIZE).decode()
+                if not data_json or data_json == "EOT":
+                    transmit = False
+                else:
+                    data = json.loads(data_json)
+                    data_list[3] = data
+                    msg('got data_list[3]', 3, str(data_list[3])) # Debug
 
             # event phase
             elif type(event) == dict:
@@ -132,6 +147,7 @@ def handle_web_client(web_client, web_client_id, transmit):
 
         else:
             event_read = json.loads(event)
+            msg('EVENT READ IS '+ str(event_read),1) # Debug
 
             # Check if plugin is loaded phase
             event_test = event_read.pop("CHECK", None)
@@ -169,6 +185,8 @@ def handle_web_client(web_client, web_client_id, transmit):
                         args.guishow # guishow
                         )
                     )
+                data_list[3] = 0
+                msg('data_list[refreshed]') # Debug
                 plugin_loader.start()
                 web_client.send(b"status:plugin_loaded")
 
@@ -178,11 +196,36 @@ def handle_web_client(web_client, web_client_id, transmit):
                 if event_test == "REFRESH":
                     data_state = data_list[2]
                     event_queue.put(event_test)
+                    # Debug
+                    print(data_state, data_list[2], event_queue.empty())
                     while data_state == data_list[2] or not event_queue.empty():
+                        # Debug
+                        print(data_state, data_list[2], event_queue.empty())
                         # Event is waiting for refresh
+                        sleep(0.1)
+                        msg('or am i stuck here on top') # Debug
                         pass
 
                     web_client.send(json.dumps(data_list[1]).encode())
+
+                # Sending update
+                if event_test == "UPDATE":
+                    update_state = data_list[3]
+                    event_queue.put(event_test)
+                    # Weird timeout function
+                    timeout = False
+                    count = 0
+                    while not timeout:
+                        if update_state == data_list[3] or not event_queue.empty():
+                            sleep(0.2)
+                            count += 1
+                        elif count >= 5:
+                            timeout = True
+                        else:
+                            timeout = True
+                        msg('am i stuck here in the bottom ?') # Debug
+
+                    web_client.send(json.dumps(data_list[3]).encode())
 
             # Sending events phase
             event_test = event_read.pop("WRITE", None)
