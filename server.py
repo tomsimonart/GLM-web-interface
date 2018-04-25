@@ -69,6 +69,7 @@ def handle_plugin(plugin, plugin_id, transmit):
     client.send(b"a:client_connected")
     while transmit:
         response = plugin.recv(BUFFSIZE).decode()
+        print('response:', response)
         if not response or response == "EOT": # Single receive
             transmit = False
 
@@ -87,9 +88,11 @@ def handle_plugin(plugin, plugin_id, transmit):
                 if not data_json or data_json == "EOT":
                     transmit = False
                 else:
+                    msg(str(data_json)) # Debug
                     data = json.loads(data_json)
                     data_list[2] += 1
                     data_list[1] = data
+                plugin.send(b'ok')
 
             if event == "UPDATE":
                 plugin.send(json.dumps(event).encode())
@@ -97,8 +100,10 @@ def handle_plugin(plugin, plugin_id, transmit):
                 if not data_json or data_json == "EOT":
                     transmit = False
                 else:
+                    msg(str(data_json), 2) # Debug
                     data = json.loads(data_json)
                     data_list[3] = data
+                plugin.send(b'ok')
 
             # event phase
             elif type(event) == dict:
@@ -109,16 +114,7 @@ def handle_plugin(plugin, plugin_id, transmit):
                 elif status == "RECEIVED":
                     # Event received
                     pass
-
-            else:
-                # Unknown event
-                plugin.send(json.dumps("UNKNOWN").encode())
-                status = plugin.recv(BUFFSIZE).decode()
-                if not status or status == "EOT":
-                    transmit = False
-                elif status == "RETRYING":
-                    # Plugin is trying again
-                    pass
+                plugin.send(b'ok')
 
             # Reset event !!!
             event = None
@@ -133,19 +129,18 @@ def handle_web_client(web_client, web_client_id, transmit):
     """
     global plugin_loader
     client.send(b"a:client_connected")
-    msg('2s') # Debug
 
     while transmit:
 
         # Add event to queue
         event = web_client.recv(BUFFSIZE).decode()
-        msg('5r') # Debug
+        print('event web client', event) # Debug
         if not event or event == "EOT":
-            msg('9end') # Debug
             transmit = False
 
         else:
             event_read = json.loads(event)
+            print(event_read)
 
             # Check if plugin is loaded phase
             event_test = event_read.pop("CHECK", None)
@@ -193,29 +188,17 @@ def handle_web_client(web_client, web_client_id, transmit):
                 if event_test == "REFRESH":
                     data_state = data_list[2]
                     event_queue.put(event_test)
-                    while data_state == data_list[2] or not event_queue.empty():
+                    while data_state == data_list[2]:
                         # Event is waiting for refresh
-                        sleep(0.1)
+                        sleep(0.2)
                         pass
 
                     web_client.send(json.dumps(data_list[1]).encode())
 
                 # Sending update
-                if event_test == "UPDATE":
-                    update_state = data_list[3]
+                elif event_test == "UPDATE":
                     event_queue.put(event_test)
-                    # Weird timeout function
-                    timeout = False
-                    count = 0
-                    while not timeout:
-                        if update_state == data_list[3] or not event_queue.empty():
-                            sleep(0.2)
-                            count += 1
-                        if count >= 5:
-                            timeout = True
-
                     web_client.send(json.dumps(data_list[3]).encode())
-                    msg('6s') # Debug
 
             # Sending events phase
             event_test = event_read.pop("WRITE", None)
@@ -257,7 +240,6 @@ if __name__ == "__main__":
                 # Accepting client connection
                 client, addr = server.accept()
                 user = client.recv(BUFFSIZE).decode() # 1 recv
-                msg('1r') # Debug
 
                 # Check if user is a possible name
                 if user == "plugin" or user == "web_client":

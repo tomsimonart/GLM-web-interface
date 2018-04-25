@@ -106,22 +106,22 @@ class WebClient():
 
                     else:
                         event = json.loads(event_json)
+                        print('event', event) # Debug
 
                         # refresh phase
                         if event == "REFRESH":
                             self.client.send(self._get_data())
+                            feedback = self.client.recv(BUFFSIZE).decode()
 
                         elif event == "UPDATE":
                             self.client.send(self._get_state())
+                            feedback = self.client.recv(BUFFSIZE).decode()
 
                         # event phase
                         elif type(event) == dict:
                             self.events.put(event_json)
                             self.client.send(json.dumps("RECEIVED").encode())
-
-                        # unknown phase
-                        elif event == "UNKNOWN":
-                            self.client.send(json.dumps("RETRYING").encode())
+                            feedback = self.client.recv(BUFFSIZE).decode()
 
 
     def handle_data(self, user="plugin"):

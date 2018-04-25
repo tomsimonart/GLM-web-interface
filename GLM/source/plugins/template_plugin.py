@@ -20,7 +20,7 @@ class Plugin():
                 matrix=matrix,
                 show=show,
                 guishow=guishow,
-                fps=0.333
+                fps=30
                 )
             self.client = WebClient(process_events) # Initialize web client
 

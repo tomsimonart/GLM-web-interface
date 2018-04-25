@@ -52,8 +52,6 @@ def index():
 
 @app.route('/update')
 def send_update():
-    """ Polling update state from plugin
-    """
     data = 0 # No data
     # Connection to server
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,18 +62,13 @@ def send_update():
             msg("connection refused with server", 3, level=0)
     else:
         client.send(b"web_client")
-        msg('0s') # Debug
         status = client.recv(BUFFSIZE).decode()
-        msg('3r') # Debug
         if status == "a:client_connected":
             event = json.dumps({"READ": "UPDATE"}).encode()
             client.send(event)
-            msg('4s') # Debug
             data = client.recv(BUFFSIZE).decode()
-            msg('7r') # Debug
 
         client.send(b"EOT")
-        msg('8s') # Debug
         client.close()
 
     return render_template('update.html', update=str(json.loads(data)))
