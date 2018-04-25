@@ -68,7 +68,6 @@ def handle_plugin(plugin, plugin_id, transmit):
     """
     client.send(b"a:client_connected")
     while transmit:
-        msg('SHOULD do this a couple times') # Debug
         response = plugin.recv(BUFFSIZE).decode()
         if not response or response == "EOT": # Single receive
             transmit = False
@@ -80,8 +79,6 @@ def handle_plugin(plugin, plugin_id, transmit):
                 event = None
             else:
                 pass
-
-            msg('QUEUE EVENT', 2, str(event)) # Debug
 
             # refresh phase
             if event == "REFRESH":
@@ -102,7 +99,6 @@ def handle_plugin(plugin, plugin_id, transmit):
                 else:
                     data = json.loads(data_json)
                     data_list[3] = data
-                    msg('got data_list[3]', 3, str(data_list[3])) # Debug
 
             # event phase
             elif type(event) == dict:
@@ -137,17 +133,19 @@ def handle_web_client(web_client, web_client_id, transmit):
     """
     global plugin_loader
     client.send(b"a:client_connected")
+    msg('2s') # Debug
 
     while transmit:
 
         # Add event to queue
         event = web_client.recv(BUFFSIZE).decode()
+        msg('5r') # Debug
         if not event or event == "EOT":
+            msg('9end') # Debug
             transmit = False
 
         else:
             event_read = json.loads(event)
-            msg('EVENT READ IS '+ str(event_read),1) # Debug
 
             # Check if plugin is loaded phase
             event_test = event_read.pop("CHECK", None)
@@ -186,7 +184,6 @@ def handle_web_client(web_client, web_client_id, transmit):
                         )
                     )
                 data_list[3] = 0
-                msg('data_list[refreshed]') # Debug
                 plugin_loader.start()
                 web_client.send(b"status:plugin_loaded")
 
@@ -196,14 +193,9 @@ def handle_web_client(web_client, web_client_id, transmit):
                 if event_test == "REFRESH":
                     data_state = data_list[2]
                     event_queue.put(event_test)
-                    # Debug
-                    print(data_state, data_list[2], event_queue.empty())
                     while data_state == data_list[2] or not event_queue.empty():
-                        # Debug
-                        print(data_state, data_list[2], event_queue.empty())
                         # Event is waiting for refresh
                         sleep(0.1)
-                        msg('or am i stuck here on top') # Debug
                         pass
 
                     web_client.send(json.dumps(data_list[1]).encode())
@@ -219,13 +211,11 @@ def handle_web_client(web_client, web_client_id, transmit):
                         if update_state == data_list[3] or not event_queue.empty():
                             sleep(0.2)
                             count += 1
-                        elif count >= 5:
+                        if count >= 5:
                             timeout = True
-                        else:
-                            timeout = True
-                        msg('am i stuck here in the bottom ?') # Debug
 
                     web_client.send(json.dumps(data_list[3]).encode())
+                    msg('6s') # Debug
 
             # Sending events phase
             event_test = event_read.pop("WRITE", None)
@@ -267,6 +257,7 @@ if __name__ == "__main__":
                 # Accepting client connection
                 client, addr = server.accept()
                 user = client.recv(BUFFSIZE).decode() # 1 recv
+                msg('1r') # Debug
 
                 # Check if user is a possible name
                 if user == "plugin" or user == "web_client":

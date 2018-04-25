@@ -106,7 +106,6 @@ class WebClient():
 
                     else:
                         event = json.loads(event_json)
-                        msg('EVENT ' + str(event)) # Debug
 
                         # refresh phase
                         if event == "REFRESH":
