@@ -69,7 +69,6 @@ def handle_plugin(plugin, plugin_id, transmit):
     client.send(b"a:client_connected")
     while transmit:
         response = plugin.recv(BUFFSIZE).decode()
-        print('response:', response)
         if not response or response == "EOT": # Single receive
             transmit = False
 
@@ -88,7 +87,6 @@ def handle_plugin(plugin, plugin_id, transmit):
                 if not data_json or data_json == "EOT":
                     transmit = False
                 else:
-                    msg(str(data_json)) # Debug
                     data = json.loads(data_json)
                     data_list[2] += 1
                     data_list[1] = data
@@ -100,7 +98,6 @@ def handle_plugin(plugin, plugin_id, transmit):
                 if not data_json or data_json == "EOT":
                     transmit = False
                 else:
-                    msg(str(data_json), 2) # Debug
                     data = json.loads(data_json)
                     data_list[3] = data
                 plugin.send(b'ok')
@@ -134,13 +131,11 @@ def handle_web_client(web_client, web_client_id, transmit):
 
         # Add event to queue
         event = web_client.recv(BUFFSIZE).decode()
-        print('event web client', event) # Debug
         if not event or event == "EOT":
             transmit = False
 
         else:
             event_read = json.loads(event)
-            print(event_read)
 
             # Check if plugin is loaded phase
             event_test = event_read.pop("CHECK", None)
