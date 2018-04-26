@@ -92,17 +92,17 @@ class WebClient():
             self.connected = True
 
             while self.is_connected():
-                self.client.send(b"READY")
 
                 if self.check_exit():
                     trash = self.client.recv(BUFFSIZE).decode()
                     self._close_connection()
 
                 else:
+                    self.client.send(b"READY")
                     # Receive event
                     event_json = self.client.recv(BUFFSIZE).decode()
                     if not event_json:
-                        self.connected = False
+                        self._set_connected(False)
 
                     else:
                         event = json.loads(event_json)

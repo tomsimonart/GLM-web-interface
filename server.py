@@ -91,6 +91,11 @@ def handle_plugin(plugin, plugin_id, transmit):
                     data_list[2] += 1
                     data_list[1] = data
                 plugin.send(b'ok')
+                # except BrokenPipeError:
+                #     transmit = False
+                #     plugin.close()
+                #     msg('pipe broken', 1, level=0)
+                #     return transmit
 
             if event == "UPDATE":
                 plugin.send(json.dumps(event).encode())
@@ -101,6 +106,11 @@ def handle_plugin(plugin, plugin_id, transmit):
                     data = json.loads(data_json)
                     data_list[3] = data
                 plugin.send(b'ok')
+                # except BrokenPipeError:
+                #     transmit = False
+                #     plugin.close()
+                #     msg('pipe broken', 1, level=0)
+                #     return transmit
 
             # event phase
             elif type(event) == dict:
@@ -112,6 +122,11 @@ def handle_plugin(plugin, plugin_id, transmit):
                     # Event received
                     pass
                 plugin.send(b'ok')
+                # except BrokenPipeError:
+                #     transmit = False
+                #     plugin.close()
+                #     msg('pipe broken', 1, level=0)
+                #     return transmit
 
             # Reset event !!!
             event = None
