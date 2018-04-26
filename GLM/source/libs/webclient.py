@@ -118,6 +118,13 @@ class WebClient():
 
                         # event phase
                         elif type(event) == dict:
+                            msg(
+                                'received',
+                                0,
+                                'Event',
+                                str(event),
+                                level=4,
+                                slevel='event')
                             self.events.put(event_json)
                             self.client.send(json.dumps("RECEIVED").encode())
                             feedback = self.client.recv(BUFFSIZE).decode()

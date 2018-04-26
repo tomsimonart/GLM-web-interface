@@ -154,13 +154,8 @@ def handle_web_client(web_client, web_client_id, transmit):
                 if plugin_loader is not None:
                     plugin_loader_queue.put("END")
                     while not plugin_loader_queue.empty():
-                        msg(
-                            'waiting for plugin',
-                            1,
-                            'server.handle_web_client',
-                            level=1
-                            )
-                        sleep(0.1)
+                        msg('plugin running', 1, 'LOADPLUGIN', level=2)
+                        sleep(0.05)
                 plugin_loader = multiprocessing.Process(
                     target=glm.plugin_loader,
                     daemon=False,
@@ -185,7 +180,7 @@ def handle_web_client(web_client, web_client_id, transmit):
                     event_queue.put(event_test)
                     while data_state == data_list[2]:
                         # Event is waiting for refresh
-                        sleep(0.2)
+                        sleep(0.01)
                         pass
 
                     web_client.send(json.dumps(data_list[1]).encode())
