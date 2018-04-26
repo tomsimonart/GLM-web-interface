@@ -80,6 +80,7 @@ def handle_plugin(plugin, plugin_id, transmit):
             else:
                 pass
 
+            msg(str(response), 3, 'response') # Debug
             # refresh phase
             if event == "REFRESH":
                 plugin.send(json.dumps(event).encode())
@@ -167,10 +168,18 @@ def handle_web_client(web_client, web_client_id, transmit):
                 current_plugin_id.clear()
                 current_plugin_id.append(event_test)
                 if plugin_loader is not None:
-                    plugin_loader_queue.put("END")
                     while not plugin_loader_queue.empty():
-                        msg('plugin running', 1, 'LOADPLUGIN', level=2)
+                        print(plugin_loader_queue.qsize()) # Debug
                         sleep(0.05)
+                    plugin_loader_queue.put("END")
+                    # while not plugin_loader_queue.empty():
+                    #     print(plugin_loader_queue.qsize()) # Debug
+                    #     sleep(0.05)
+                    # ready = plugin_loader_queue.get()
+                    plugin_loader.join()
+                    # while not plugin_loader_queue.empty():
+                    #     msg('plugin running', 1, 'LOADPLUGIN', level=2)
+                    #     sleep(0.05)
                 plugin_loader = multiprocessing.Process(
                     target=glm.plugin_loader,
                     daemon=False,

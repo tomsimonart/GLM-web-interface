@@ -75,6 +75,9 @@ class WebClient():
             self.exit = True
         return self.exit
 
+    def get_exit(self):
+        return self.exit
+
     def _get_event_loop(self, user):
         """ Threaded event receive
         """
@@ -89,46 +92,50 @@ class WebClient():
 
         status = self.client.recv(BUFFSIZE).decode()
         if status == "a:client_connected":
-            self.connected = True
+            self._set_connected(True)
 
             while self.is_connected():
-
-                if self.check_exit():
-                    trash = self.client.recv(BUFFSIZE).decode()
-                    self._close_connection()
+                self.client.send(b"READY")
+                # Receive event
+                event_json = self.client.recv(BUFFSIZE).decode()
+                if not event_json:
+                    self._set_connected(False)
 
                 else:
-                    self.client.send(b"READY")
-                    # Receive event
-                    event_json = self.client.recv(BUFFSIZE).decode()
-                    if not event_json:
-                        self._set_connected(False)
+                    msg('INSIDE') # Debug
+                    event = json.loads(event_json)
 
-                    else:
-                        event = json.loads(event_json)
+                    # refresh phase
+                    if event == "REFRESH":
+                        self.client.send(self._get_data())
+                        msg('REFRESH------------------<<<', 2) # Debug
+                        feedback = self.client.recv(BUFFSIZE).decode()
+                        msg('REFRESH------------------>>>', 2) # Debug
 
-                        # refresh phase
-                        if event == "REFRESH":
-                            self.client.send(self._get_data())
-                            feedback = self.client.recv(BUFFSIZE).decode()
+                    elif event == "UPDATE":
+                        self.client.send(self._get_state())
+                        msg('UPDATE------------------<<<', 2) # Debug
+                        feedback = self.client.recv(BUFFSIZE).decode()
+                        msg('UPDATE------------------>>>', 2) # Debug
 
-                        elif event == "UPDATE":
-                            self.client.send(self._get_state())
-                            feedback = self.client.recv(BUFFSIZE).decode()
+                    # event phase
+                    elif type(event) == dict:
+                        msg(
+                            'received',
+                            0,
+                            'Event',
+                            str(event),
+                            level=4,
+                            slevel='event')
+                        self.events.put(event_json)
+                        self.client.send(json.dumps("RECEIVED").encode())
+                        msg('EVENT------------------<<<', 2) # Debug
+                        feedback = self.client.recv(BUFFSIZE).decode()
+                        msg('EVENT------------------>>>', 2) # Debug
 
-                        # event phase
-                        elif type(event) == dict:
-                            msg(
-                                'received',
-                                0,
-                                'Event',
-                                str(event),
-                                level=4,
-                                slevel='event')
-                            self.events.put(event_json)
-                            self.client.send(json.dumps("RECEIVED").encode())
-                            feedback = self.client.recv(BUFFSIZE).decode()
-
+                if self.check_exit():
+                    msg('SENDING EOT')
+                    self._close_connection()
 
     def handle_data(self, user="plugin"):
         """ Change handle_data name
