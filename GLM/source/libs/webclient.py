@@ -40,7 +40,7 @@ class WebClient():
 
     def _close_connection(self):
         self._set_connected(False)
-        self.client.send(b"EOT")
+        # self.client.send(b"EOT") # Debug
         self.client.close()
 
     def set_data(self, data):
@@ -67,7 +67,9 @@ class WebClient():
             return None
 
     def check_exit(self):
+        msg('check_exit') # Debug
         try:
+            self.process_events.join()
             exit = self.process_events.get(False)
         except queue.Empty:
             exit = False
@@ -95,11 +97,13 @@ class WebClient():
             self._set_connected(True)
 
             while self.is_connected():
+                print('IN') # Debug
                 self.client.send(b"READY")
                 # Receive event
                 event_json = self.client.recv(BUFFSIZE).decode()
                 if not event_json:
-                    self._set_connected(False)
+                    self._close_connection()
+                    pass
 
                 else:
                     msg('INSIDE') # Debug
@@ -114,9 +118,9 @@ class WebClient():
 
                     elif event == "UPDATE":
                         self.client.send(self._get_state())
-                        msg('UPDATE------------------<<<', 2) # Debug
+                        msg('UPDAT------------------<<<', 2) # Debug
                         feedback = self.client.recv(BUFFSIZE).decode()
-                        msg('UPDATE------------------>>>', 2) # Debug
+                        msg('UPDAT------------------>>>', 2) # Debug
 
                     # event phase
                     elif type(event) == dict:
@@ -134,8 +138,9 @@ class WebClient():
                         msg('EVENT------------------>>>', 2) # Debug
 
                 if self.check_exit():
-                    msg('SENDING EOT')
+                    msg('EXIT LOOP') # Debug
                     self._close_connection()
+            print('OUT') # Debug
 
     def handle_data(self, user="plugin"):
         """ Change handle_data name

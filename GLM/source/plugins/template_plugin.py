@@ -51,11 +51,8 @@ class Plugin():
         # Plugin loop
         msg("STARTING PLUGIN", level=1)
         loop = True
+        self.client.handle_data() # Start self.client
         while loop:
-            msg('plugin busy') # Debug
-            if not self.client.is_connected(): # Connect or reconnect
-                self.client.handle_data() # Start self.client
-
             if self.client.get_exit():
                 msg("ENDING PLUGIN", 3, level=1)
                 loop = False

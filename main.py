@@ -76,7 +76,7 @@ def send_update():
 
 @app.route('/plugin/<int:id>')
 def select_plugin(id):
-    msg("Plugin selected", level=2)
+    msg("Plugin {} selected".format(str(id)), level=2)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
@@ -91,6 +91,7 @@ def select_plugin(id):
             event = json.dumps({"LOADPLUGIN": id}).encode()
             client.send(event)
             status = client.recv(BUFFSIZE).decode()
+            msg(status) # Debug
 
             client.send(b"EOT")
             client.close()

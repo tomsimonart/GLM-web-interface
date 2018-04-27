@@ -59,7 +59,7 @@ event_queue = Queue()
 data_list = [0, "", 0, 0]
 current_plugin_id = []
 
-plugin_loader_queue = multiprocessing.Queue()
+plugin_loader_queue = multiprocessing.JoinableQueue()
 
 
 def handle_plugin(plugin, plugin_id, transmit):
@@ -165,18 +165,22 @@ def handle_web_client(web_client, web_client_id, transmit):
             # Plugin loading phase
             event_test = event_read.pop("LOADPLUGIN", None)
             if event_test is not None:
-                current_plugin_id.clear()
-                current_plugin_id.append(event_test)
                 if plugin_loader is not None:
-                    while not plugin_loader_queue.empty():
-                        print(plugin_loader_queue.qsize()) # Debug
-                        sleep(0.05)
+                    # while not plugin_loader_queue.empty():
+                    #     print(plugin_loader_queue.qsize()) # Debug
+                    #     sleep(0.05)
+                    plugin_loader_queue.join()
                     plugin_loader_queue.put("END")
                     # while not plugin_loader_queue.empty():
                     #     print(plugin_loader_queue.qsize()) # Debug
                     #     sleep(0.05)
                     # ready = plugin_loader_queue.get()
-                    plugin_loader.join()
+                    while plugin_loader.exitcode is None:
+                        print(plugin_loader_queue.qsize()) # Debug
+                        plugin_loader.join(1)
+                        if plugin_loader_queue.empty():
+                            plugin_loader_queue.join()
+                            plugin_loader_queue.put("END")
                     # while not plugin_loader_queue.empty():
                     #     msg('plugin running', 1, 'LOADPLUGIN', level=2)
                     #     sleep(0.05)
@@ -192,6 +196,8 @@ def handle_web_client(web_client, web_client_id, transmit):
                         args.guishow # guishow
                         )
                     )
+                current_plugin_id.clear()
+                current_plugin_id.append(event_test)
                 data_list[3] = 0
                 plugin_loader.start()
                 web_client.send(b"status:plugin_loaded")
