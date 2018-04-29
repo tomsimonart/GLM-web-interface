@@ -41,7 +41,6 @@ class WebClient():
     def _close_connection(self):
         self._set_connected(False)
         # self.client.send(b"EOT") # Debug
-        self.client.close()
 
     def set_data(self, data):
         """ Updates the rendered web data
@@ -97,16 +96,16 @@ class WebClient():
             self._set_connected(True)
 
             while self.is_connected():
-                print('IN') # Debug
                 self.client.send(b"READY")
                 # Receive event
+                msg('waiting', 3) # Debug
                 event_json = self.client.recv(BUFFSIZE).decode()
+                msg('end wait', 3) # Debug
                 if not event_json:
                     self._close_connection()
                     pass
 
                 else:
-                    msg('INSIDE') # Debug
                     event = json.loads(event_json)
 
                     # refresh phase
@@ -121,6 +120,10 @@ class WebClient():
                         msg('UPDAT------------------<<<', 2) # Debug
                         feedback = self.client.recv(BUFFSIZE).decode()
                         msg('UPDAT------------------>>>', 2) # Debug
+
+                    elif event == "LOADPLUGIN":
+                        msg('got loadplugin', 2) # Debug
+                        pass
 
                     # event phase
                     elif type(event) == dict:
@@ -138,9 +141,10 @@ class WebClient():
                         msg('EVENT------------------>>>', 2) # Debug
 
                 if self.check_exit():
-                    msg('EXIT LOOP') # Debug
+                    msg('THIS IS WHAT WE NEED') # Debug
                     self._close_connection()
             print('OUT') # Debug
+            self.client.close()
 
     def handle_data(self, user="plugin"):
         """ Change handle_data name
