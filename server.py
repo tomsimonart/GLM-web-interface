@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
+
 import json
+import socket
 import argparse
 import selectors
 import threading
@@ -10,45 +13,91 @@ from queue import Queue, Empty
 from GLM.source.libs.rainbow import msg
 
 BUFFSIZE = 512
-
 glm.PLUGIN_PACKAGE = "GLM.source.plugins"
 PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
-plugin_loader = None
 
-def setup():
-    """Sets up the argument parser
+class Server(object):
+    """Server object
     """
-    parser = argparse.ArgumentParser(description="Serve GLM")
-    parser.add_argument('--host', help='Host', default='localhost', type=str)
-    parser.add_argument('--port', '-p', help='Port', default=9999, type=int)
-    parser.add_argument(
-        '--verbose', '-v', action='count', help='Verbose level', default=0
-        )
-    parser.add_argument(
-        '--sverbose', '-V', help='Special verbosity', action='append', type=str
-        )
-    parser.add_argument(
-        '--matrix', '-m', help='Matrix enabled', action='store_true'
-        )
-    parser.add_argument('--show', '-s', help='Virtual matrix enabled',
-    action='store_true')
-    parser.add_argument(
-        '--guishow', '-g', help='GUI enabled', action='store_true'
-        )
+    def __init__(self, buffsize=BUFFSIZE, pdir=PLUGIN_DIRECTORY):
+        super().__init__()
+        self.limit = 100
+        self._buffsize = buffsize
+        self._plugin_directory = pdir
+        self._plugin_loader = None
+        self._setup()
+        self._start_server()
 
-    args = parser.parse_args()
+    def _setup(self):
+        """Sets up the argument parser
+        """
+        parser = argparse.ArgumentParser(description="Serve GLM")
+        parser.add_argument('--host', help='Host', default='localhost', type=str)
+        parser.add_argument('--port', '-p', help='Port', default=9999, type=int)
+        parser.add_argument(
+            '--verbose', '-v', action='count', help='Verbose level', default=0
+            )
+        parser.add_argument(
+            '--sverbose', '-V', help='Special verbosity', action='append', type=str
+            )
+        parser.add_argument(
+            '--matrix', '-m', help='Matrix enabled', action='store_true'
+            )
+        parser.add_argument('--show', '-s', help='Virtual matrix enabled',
+        action='store_true')
+        parser.add_argument(
+            '--guishow', '-g', help='GUI enabled', action='store_true'
+            )
 
-    dir = path.dirname(__file__)
-    rel_path = path.join(dir, 'GLM/verbosity')
+        args = parser.parse_args()
 
-    with open(rel_path, 'w') as f:
-        f.write(str(args.verbose)+'\n')
-        if args.sverbose is not None:
-            for arg in args.sverbose:
-                f.write(arg+'\n')
+        dir = path.dirname(__file__)
+        rel_path = path.join(dir, 'GLM/verbosity')
 
-    server_addr = (args.host, args.port)
+        with open(rel_path, 'w') as f:
+            f.write(str(args.verbose)+'\n')
+            if args.sverbose is not None:
+                for arg in args.sverbose:
+                    f.write(arg+'\n')
 
+        self.server_addr = (args.host, args.port)
+        self._matrix = args.matrix
+        self._show = args.show
+        self._guishow = args.guishow
+
+    def _start_server(self):
+        """Creating the serving socket
+        """
+        msg("Starting", 1, "Server", self.server_addr, level=1)
+        self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._server.setblocking(False)
+        self._server.bind(self.server_addr)
+        self._server.listen(self.limit)
+        self._selector(selectors.DefaultSelector())
+        self._selector.register(
+            self._server, selectors.EVENT_READ, self._accept
+            )
+
+    def server_forever(self):
+        while True:
+            self._accept_connections()
+
+    def _accept(self, sock, mask):
+        conn, addr = sock.accept()
+        msg("Accepting", 1, "Server", conn, level=3)
+        conn.setblocking(False)
+        self._selector.register(conn, selectors.EVENT_READ, self._handle_cli)
+
+    def _handle_cli(self, conn, mask):
+        pass
+
+    def close(self):
+        self._server.close()
 
 if __name__ == "__main__":
-    setup()
+    try:
+        server = Server()
+        server.server_forever()
+    except KeyboardInterrupt:
+        server.close()
