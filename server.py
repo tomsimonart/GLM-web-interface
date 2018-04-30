@@ -74,23 +74,34 @@ class Server(object):
         self._server.setblocking(False)
         self._server.bind(self.server_addr)
         self._server.listen(self.limit)
-        self._selector(selectors.DefaultSelector())
+        self._selector = selectors.DefaultSelector()
         self._selector.register(
             self._server, selectors.EVENT_READ, self._accept
             )
 
     def server_forever(self):
         while True:
-            self._accept_connections()
+            msg("Waiting", 0, "Server", level=4, slevel="select")
+            events = self._selector.select(1)
+            for key, mask in events:
+                msg("Got event", 0, "Server", level=4, slevel="select")
+                callback = key.data
+                callback(key.fileobj, mask)
 
     def _accept(self, sock, mask):
         conn, addr = sock.accept()
-        msg("Accepting", 1, "Server", conn, level=3)
+        msg("Accepting", 0, "Server", conn, level=3)
         conn.setblocking(False)
         self._selector.register(conn, selectors.EVENT_READ, self._handle_cli)
 
     def _handle_cli(self, conn, mask):
-        pass
+        data = conn.recv(self._buffsize)
+        if data:
+            print(data.decode(), mask, sep=" + ")
+        else:
+            msg("Closing", 1, "Server", conn, level=3)
+            self._selector.unregister(conn)
+            conn.close()
 
     def close(self):
         self._server.close()
@@ -101,3 +112,4 @@ if __name__ == "__main__":
         server.server_forever()
     except KeyboardInterrupt:
         server.close()
+        print()
