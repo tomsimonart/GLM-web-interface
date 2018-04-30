@@ -4,11 +4,9 @@ import json
 import socket
 import argparse
 import threading
-import traceback
 import multiprocessing
 from os import path
 from GLM import glm
-from sys import argv
 from time import sleep
 from queue import Queue, Empty
 from GLM.source.libs.rainbow import msg
@@ -40,10 +38,6 @@ with open(rel_path, 'w') as f:
     if args.sverbose is not None:
         for arg in args.sverbose:
             f.write(arg+'\n')
-
-
-# if len(argv) >= 2 and argv[1].isdecimal():
-#     port = int(argv[1])
 
 server_addr = (args.host, args.port)
 
