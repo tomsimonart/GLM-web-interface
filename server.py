@@ -24,7 +24,8 @@ class Server(object):
         self.limit = 100
         self._buffsize = buffsize
         self._plugin_directory = pdir
-        self._plugin_loader = None
+        self._plugin_loader = None # Current plugin
+        self._id_inc = 0
         self._setup()
         self._start_server()
 
@@ -95,13 +96,58 @@ class Server(object):
         self._selector.register(conn, selectors.EVENT_READ, self._handle_cli)
 
     def _handle_cli(self, conn, mask):
-        data = conn.recv(self._buffsize)
-        if data:
-            print(data.decode(), mask, sep=" + ")
+        user = conn.recv(self._buffsize)
+        if user:
+            user = user.decode()
+            print('user is:', user)
+            if user == "main":
+                self._selector.unregister(conn)
+                thread_name = user + '_' + str(self._id_inc)
+                thread = threading.Thread(
+                    name=thread_name,
+                    target=self._handle_main,
+                    args=(conn, thread_name),
+                    daemon=True
+                    )
+                msg("Thread", 0, "Server", thread.getName(), level=3)
+                thread.start()
+            elif user == "webclient":
+                self._selector.unregister(conn)
+                thread_name = user + '_' + str(self._id_inc)
+                thread = threading.Thread(
+                    name=thread_name,
+                    target=self._handle_plugin,
+                    args=(conn, thread_name),
+                    daemon=True
+                    )
+                msg("Thread", 0, "Server", thread.getName(), level=3)
+                thread.start()
+            else:
+                # TODO add case if bad username
+                msg('Bad user', 2, 'Server', level=0)
         else:
             msg("Closing", 1, "Server", conn, level=3)
             self._selector.unregister(conn)
             conn.close()
+
+    def _handle_main(self, conn, name):
+        """Thread that handles the main client requests (flask server main.py)
+        """
+        main_selector = selectors.DefaultSelector()
+        main_selector.register(
+            conn, selectors.EVENT_READ | selectors.EVENT_WRITE
+            )
+        events = main_selector.select()
+
+    def _handle_plugin(self, conn, name):
+        """Thread that handles the plugin client requests (webclient.py library)
+        """
+        plugin_selector = selectors.DefaultSelector()
+        main_selector.register(
+            conn, selectors.EVENT_READ | selectors.EVENT_WRITE
+            )
+        events = main_selector.select()
+
 
     def close(self):
         self._server.close()
