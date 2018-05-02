@@ -135,9 +135,23 @@ class Server(object):
         """
         main_selector = selectors.DefaultSelector()
         main_selector.register(
-            conn, selectors.EVENT_READ | selectors.EVENT_WRITE
-            )
-        events = main_selector.select()
+            conn, selectors.EVENT_READ | selectors.EVENT_WRITE, name
+            ) # TODO remove EVENT_WRITE if unused
+        while True:
+            events = main_selector.select()
+            for key, mask in events:
+                conn = key.fileobj
+                user = key.data
+                if mask & selectors.EVENT_READ:
+                    print('ready for READ', user)
+                    msg = conn.recv(self._buffsize)
+                    if msg:
+                        if msg == "LOADPLUGIN":
+                            pass
+                    else:
+                        main_selector.unregister(conn)
+                        conn.close()
+
 
     def _handle_plugin(self, conn, name):
         """Thread that handles the plugin client requests (webclient.py library)
