@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import json
+import uuid
 import socket
+import marshal
 import argparse
 import selectors
 import threading
@@ -9,7 +10,7 @@ import multiprocessing
 from os import path
 from GLM import glm
 from time import sleep
-from queue import Queue, Empty
+from queue import Queue
 from GLM.source.libs.rainbow import msg
 
 BUFFSIZE = 512
@@ -21,13 +22,26 @@ class Server(object):
     """
     def __init__(self, buffsize=BUFFSIZE, pdir=PLUGIN_DIRECTORY):
         super().__init__()
+        self._state = None
         self.limit = 100
         self._buffsize = buffsize
         self._plugin_directory = pdir
         self._plugin_loader = None # Current plugin
-        self._id_inc = 0
+        self._message_handlers = {}
         self._setup()
         self._start_server()
+
+    def init(self):
+        def _init(func):
+            self._init = func
+            return func
+        return _init
+
+    def handle_msg(self, name):
+        def _handle_msg(func):
+            self._message_handlers[name] = func
+            return func
+        return _handle_msg
 
     def _setup(self):
         """Sets up the argument parser
@@ -81,6 +95,7 @@ class Server(object):
             )
 
     def server_forever(self):
+        self._state = self._init()
         while True:
             msg("Waiting", 0, "Server", level=4, slevel="select")
             events = self._selector.select(1)
@@ -93,78 +108,72 @@ class Server(object):
         conn, addr = sock.accept()
         msg("Accepting", 0, "Server", conn, level=3)
         conn.setblocking(False)
-        self._selector.register(conn, selectors.EVENT_READ, self._handle_cli)
+        self._selector.register(conn, selectors.EVENT_READ, self._on_message)
 
-    def _handle_cli(self, conn, mask):
-        user = conn.recv(self._buffsize)
-        if user:
-            user = user.decode()
-            print('user is:', user)
-            if user == "main":
-                self._selector.unregister(conn)
-                thread_name = user + '_' + str(self._id_inc)
-                thread = threading.Thread(
-                    name=thread_name,
-                    target=self._handle_main,
-                    args=(conn, thread_name),
-                    daemon=True
+    def _on_message(self, conn, mask):
+        msg = conn.recv(self._buffsize)
+        if msg:
+            mid, name, args, kwargs = marshal.loads(msg)
+            if name in self._message_handlers:
+                response, new_state = self._message_handlers[name](
+                    self._state, *args, **kwargs
                     )
-                msg("Thread", 0, "Server", thread.getName(), level=3)
-                thread.start()
-            elif user == "webclient":
-                self._selector.unregister(conn)
-                thread_name = user + '_' + str(self._id_inc)
-                thread = threading.Thread(
-                    name=thread_name,
-                    target=self._handle_plugin,
-                    args=(conn, thread_name),
-                    daemon=True
-                    )
-                msg("Thread", 0, "Server", thread.getName(), level=3)
-                thread.start()
-            else:
-                # TODO add case if bad username
-                msg('Bad user', 2, 'Server', level=0)
+                self._state = new_state
+                conn.send(marshal.dumps((mid, response)))
+
         else:
             msg("Closing", 1, "Server", conn, level=3)
             self._selector.unregister(conn)
             conn.close()
 
-    def _handle_main(self, conn, name):
-        """Thread that handles the main client requests (flask server main.py)
-        """
-        main_selector = selectors.DefaultSelector()
-        main_selector.register(
-            conn, selectors.EVENT_READ | selectors.EVENT_WRITE, name
-            ) # TODO remove EVENT_WRITE if unused
-        while True:
-            events = main_selector.select()
-            for key, mask in events:
-                conn = key.fileobj
-                user = key.data
-                if mask & selectors.EVENT_READ:
-                    print('ready for READ', user)
-                    msg = conn.recv(self._buffsize)
-                    if msg:
-                        if msg == "LOADPLUGIN":
-                            pass
-                    else:
-                        main_selector.unregister(conn)
-                        conn.close()
-
-
-    def _handle_plugin(self, conn, name):
-        """Thread that handles the plugin client requests (webclient.py library)
-        """
-        plugin_selector = selectors.DefaultSelector()
-        main_selector.register(
-            conn, selectors.EVENT_READ | selectors.EVENT_WRITE
-            )
-        events = main_selector.select()
-
 
     def close(self):
         self._server.close()
+
+class Client(threading.Thread):
+    def __init__(self, addr, buffsize=512):
+        super().__init__()
+        self._server_addr = addr
+        self._buffsize = buffsize
+        self._responses = {}
+
+    def _connect_client(self):
+        """Creating the client serving socket
+        """
+        msg("Starting", 1, "Client", level=1)
+        self._client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # self._client.setblocking(True)
+        self._client.connect(self._server_addr)
+        self._selector = selectors.DefaultSelector()
+        self._selector.register(self._client, selectors.EVENT_READ)
+
+    def call(self, name, *args, **kwargs):
+        mid = str(uuid.uuid1())
+        self._responses[mid] = Queue()
+        message = marshal.dumps((mid, name, args, kwargs))
+        self._client.send(message)
+        res = self._responses[mid].get()
+        del self._responses[mid]
+        return res
+
+    def run(self):
+        self._connect_client()
+        while True:
+            events = self._selector.select()
+            for key, mask in events:
+                conn = key.fileobj
+                if mask & selectors.EVENT_READ:
+                    msg = conn.recv(self._buffsize)
+                    if msg:
+                        mid, response = marshal.loads(msg)
+                        self._responses[mid].put(response)
+                    else:
+                        pass # TODO drop connection
+
+
+
+
 
 if __name__ == "__main__":
     try:
