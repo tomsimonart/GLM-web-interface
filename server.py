@@ -144,12 +144,12 @@ class Client(threading.Thread):
     def _connect_client(self):
         """Creating the client serving socket
         """
-        msg("Starting", 1, "Client", level=1)
         self._client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._client.connect(self._server_addr)
         self._selector = selectors.DefaultSelector()
         self._selector.register(self._client, selectors.EVENT_READ)
+        msg("Connected", 1, "Client", level=3)
 
     def call(self, name, *args, **kwargs):
         mid = str(uuid.uuid1())
