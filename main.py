@@ -14,14 +14,13 @@ server_addr = 'localhost'
 server_port = 9999
 addr = (server_addr, server_port)
 BUFFSIZE = 512
+client = MainClient(addr)
 
 @app.route('/')
 def index():
     """Loads the index and list plugins for further selection
     """
-    client = MainClient(addr)
     plugins, plugin_id = client.load_index()
-    client.close()
     return render_template(
         'main.html',
         plugins=enumerate(plugins),
@@ -33,9 +32,7 @@ def index():
 def select_plugin(id_):
     """Load a plugin by it's ID
     """
-    client = MainClient(addr)
     client.load_plugin(id_)
-    client.close()
     return ''
 
 

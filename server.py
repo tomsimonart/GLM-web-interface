@@ -145,11 +145,8 @@ class Client(threading.Thread):
         self._client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._client.connect(self._server_addr)
         self._selector = selectors.DefaultSelector()
-        self._selector.register(
-            self._client,
-            selectors.EVENT_READ | selectors.EVENT_WRITE)
+        self._selector.register(self._client, selectors.EVENT_READ)
         self._close = False # Connected
-        self._lock_for_reception = []
         msg("Connected", 1, "Client", level=3)
 
     def call(self, name, *args, **kwargs):
@@ -158,36 +155,29 @@ class Client(threading.Thread):
         mid = str(uuid.uuid1())
         self._responses[mid] = Queue()
         message = marshal.dumps((mid, name, args, kwargs))
-        self._lock_for_reception.append(mid) # Lock this mid until reception
         self._client.send(message)
         res = self._responses[mid].get()
         del self._responses[mid]
-        self._lock_for_reception.remove(mid) # Unlock because of reception
         return res
 
     def run(self):
-        self._connect_client()
-        while not self._close or len(self._lock_for_reception) > 0:
-            events = self._selector.select(1)
-            for key, mask in events:
-                conn = key.fileobj
-                if mask & selectors.EVENT_READ:
-                    message = conn.recv(self._buffsize)
-                    if message:
-                        mid, response = marshal.loads(message)
-                        self._responses[mid].put(response)
-                    else:
-                        msg("Disconnected", 2, "Client", level=3)
-                        self._selector.unregister(conn)
-                        conn.close()
-
-        self._selector.close()
-        msg("Closing", 2, "Client", level=3)
-
-    def close(self):
-        """Ending the Thread
-        """
-        self._close = True
+        try:
+            self._connect_client()
+            while not self._close:
+                events = self._selector.select(1)
+                for key, mask in events:
+                    conn = key.fileobj
+                    if mask & selectors.EVENT_READ:
+                        message = conn.recv(self._buffsize)
+                        if message:
+                            mid, response = marshal.loads(message)
+                            self._responses[mid].put(response)
+                        else:
+                            msg("Disconnected", 2, "Client", level=3)
+                            self._selector.unregister(conn)
+                            conn.close()
+        finally:
+            msg("Closing", 3, "Client", level=3)
 
 
 if __name__ == "__main__":
