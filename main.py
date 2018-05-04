@@ -21,6 +21,7 @@ def index():
     """
     client = MainClient(addr)
     plugins, plugin_id = client.load_index()
+    client.close()
     return render_template(
         'main.html',
         plugins=enumerate(plugins),
@@ -34,8 +35,8 @@ def select_plugin(id_):
     """
     client = MainClient(addr)
     client.load_plugin(id_)
-
-    return None
+    client.close()
+    return ''
 
 
 @app.route('/plugin/<int:id_>/webview')
@@ -50,7 +51,7 @@ def event():
     """Send an event received by the control interface by POST method to
     the server
     """
-    return None
+    return ''
 
 
 @app.route('/update')

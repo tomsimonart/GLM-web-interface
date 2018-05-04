@@ -118,13 +118,15 @@ class Server(object):
                 conn.send(marshal.dumps((mid, response)))
 
         else:
-            msg("Closing", 1, "Server", conn, level=3)
+            msg("Disconnected", 2, "Server", conn, level=3)
             self._selector.unregister(conn)
             conn.close()
 
 
     def close(self):
+        msg("Closing", 2, "Server", level=3)
         self._server.close()
+        self._selector.close()
 
 class Client(threading.Thread):
     def __init__(self, addr, buffsize=512):
@@ -133,7 +135,7 @@ class Client(threading.Thread):
         self._server_addr = addr
         self._buffsize = buffsize
         self._responses = {}
-        self._close = False
+        self._close = True
         self.start()
 
     def _connect_client(self):
@@ -143,22 +145,30 @@ class Client(threading.Thread):
         self._client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._client.connect(self._server_addr)
         self._selector = selectors.DefaultSelector()
-        self._selector.register(self._client, selectors.EVENT_READ)
+        self._selector.register(
+            self._client,
+            selectors.EVENT_READ | selectors.EVENT_WRITE)
+        self._close = False # Connected
+        self._lock_for_reception = []
         msg("Connected", 1, "Client", level=3)
 
     def call(self, name, *args, **kwargs):
+        while self._close: # Wait for self._client to connect
+            sleep(0.1)
         mid = str(uuid.uuid1())
         self._responses[mid] = Queue()
         message = marshal.dumps((mid, name, args, kwargs))
+        self._lock_for_reception.append(mid) # Lock this mid until reception
         self._client.send(message)
         res = self._responses[mid].get()
         del self._responses[mid]
+        self._lock_for_reception.remove(mid) # Unlock because of reception
         return res
 
     def run(self):
         self._connect_client()
-        while not self._close:
-            events = self._selector.select(0.5)
+        while not self._close or len(self._lock_for_reception) > 0:
+            events = self._selector.select(1)
             for key, mask in events:
                 conn = key.fileobj
                 if mask & selectors.EVENT_READ:
@@ -167,7 +177,12 @@ class Client(threading.Thread):
                         mid, response = marshal.loads(message)
                         self._responses[mid].put(response)
                     else:
-                        pass # TODO drop connection
+                        msg("Disconnected", 2, "Client", level=3)
+                        self._selector.unregister(conn)
+                        conn.close()
+
+        self._selector.close()
+        msg("Closing", 2, "Client", level=3)
 
     def close(self):
         """Ending the Thread

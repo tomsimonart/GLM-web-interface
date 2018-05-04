@@ -5,10 +5,6 @@ class MainClient():
     def __init__(self, addr):
         self.client = Client(addr)
 
-    # def __del__(self):
-    #     print('closed client')
-    #     self.client.close()
-
     def close(self):
         self.client.close()
 
@@ -22,6 +18,9 @@ class MainClient():
 class PluginClient():
     def __init__(self, addr):
         self.client = Client(addr)
+
+    def close(self):
+        self.client.close()
 
     def refresh(self):
         return self.client.call("REFRESH")

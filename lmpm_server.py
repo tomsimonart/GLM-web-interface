@@ -30,11 +30,11 @@ def load_index(state):
 @server.handle_message("LOADPLUGIN")
 def load_plugin(state, id_):
     if server.plugin_loader is not None:
-        plugin_loader_queue.put('END')
-        plugin_loader_queue.join()
+        server.plugin_loader_queue.put('END')
+        server.plugin_loader_queue.join()
         # Never forget this   v on every .get()
-        # plugin_loader_queue.task_done()
-        plugin_loader.join() # Not required
+        # server.plugin_loader_queue.task_done()
+        server.plugin_loader.join() # Not required
 
     server.plugin_loader_id = id_
     server.plugin_loader = multiprocessing.Process(
