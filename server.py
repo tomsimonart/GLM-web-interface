@@ -37,11 +37,11 @@ class Server(object):
             return func
         return _init
 
-    def handle_msg(self, name):
-        def _handle_msg(func):
+    def handle_message(self, name):
+        def _handle_message(func):
             self._message_handlers[name] = func
             return func
-        return _handle_msg
+        return _handle_message
 
     def _setup(self):
         """Sets up the argument parser
@@ -111,9 +111,10 @@ class Server(object):
         self._selector.register(conn, selectors.EVENT_READ, self._on_message)
 
     def _on_message(self, conn, mask):
-        msg = conn.recv(self._buffsize)
-        if msg:
-            mid, name, args, kwargs = marshal.loads(msg)
+        message = conn.recv(self._buffsize)
+        msg("Message", 0, "Server", str(marshal.loads(message)), level=3)
+        if message:
+            mid, name, args, kwargs = marshal.loads(message)
             if name in self._message_handlers:
                 response, new_state = self._message_handlers[name](
                     self._state, *args, **kwargs
@@ -133,9 +134,12 @@ class Server(object):
 class Client(threading.Thread):
     def __init__(self, addr, buffsize=512):
         super().__init__()
+        self.setDaemon(True)
         self._server_addr = addr
         self._buffsize = buffsize
         self._responses = {}
+        self._close = False
+        self.start()
 
     def _connect_client(self):
         """Creating the client serving socket
@@ -143,7 +147,6 @@ class Client(threading.Thread):
         msg("Starting", 1, "Client", level=1)
         self._client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # self._client.setblocking(True)
         self._client.connect(self._server_addr)
         self._selector = selectors.DefaultSelector()
         self._selector.register(self._client, selectors.EVENT_READ)
@@ -159,20 +162,22 @@ class Client(threading.Thread):
 
     def run(self):
         self._connect_client()
-        while True:
+        while not self._close:
             events = self._selector.select()
             for key, mask in events:
                 conn = key.fileobj
                 if mask & selectors.EVENT_READ:
-                    msg = conn.recv(self._buffsize)
-                    if msg:
-                        mid, response = marshal.loads(msg)
+                    message = conn.recv(self._buffsize)
+                    if message:
+                        mid, response = marshal.loads(message)
                         self._responses[mid].put(response)
                     else:
                         pass # TODO drop connection
 
-
-
+    def close(self):
+        """Ending the Thread
+        """
+        self._close = True
 
 
 if __name__ == "__main__":

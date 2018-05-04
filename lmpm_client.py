@@ -1,8 +1,8 @@
 from server import Client
 
-c = Client(('localhost', 9999))
-c.start()
+client = Client(('localhost', 9999))
+# client.start()
 
 
 def loadplugin():
-    return c.call("LOADPLUGIN")
+    return client.call("LOADPLUGIN")

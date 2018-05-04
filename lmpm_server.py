@@ -8,9 +8,9 @@ s = Server()
 def init():
     return 0
 
-@s.handle_msg("LOADPLUGIN")
+@s.handle_message("LOADPLUGIN")
 def loadplugin(state):
-    return (state + 1, state + 1)
+    return ('response', state + 1)
 
 
 if __name__ == '__main__':
