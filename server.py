@@ -158,7 +158,7 @@ class Client(threading.Thread):
     def run(self):
         self._connect_client()
         while not self._close:
-            events = self._selector.select()
+            events = self._selector.select(0.5)
             for key, mask in events:
                 conn = key.fileobj
                 if mask & selectors.EVENT_READ:

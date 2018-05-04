@@ -33,7 +33,7 @@ def select_plugin(id_):
     """Load a plugin by it's ID
     """
     client = MainClient(addr)
-    client.load_plugin()
+    client.load_plugin(id_)
 
     return None
 

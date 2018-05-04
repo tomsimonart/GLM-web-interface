@@ -1,8 +1,16 @@
 from server import Client
 
+
 class MainClient():
     def __init__(self, addr):
         self.client = Client(addr)
+
+    # def __del__(self):
+    #     print('closed client')
+    #     self.client.close()
+
+    def close(self):
+        self.client.close()
 
     def load_index(self):
         return self.client.call("LOADINDEX")

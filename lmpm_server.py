@@ -6,16 +6,15 @@ from server import Server
 from GLM.source.libs.rainbow import msg
 
 
-glm.PLUGIN_PACKAGE = "GLM.source.plugins"
-PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
-plugin_loader = None
-plugin_loader_id = -1
-plugin_loader_queue = multiprocessing.JoinableQueue()
-
 server = Server()
 
 @server.init()
 def init():
+    glm.PLUGIN_PACKAGE = "GLM.source.plugins"
+    server.PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
+    server.plugin_loader = None
+    server.plugin_loader_id = -1
+    server.plugin_loader_queue = multiprocessing.JoinableQueue()
     return 0
 
 # WEB CLIENT METHODS
@@ -23,27 +22,27 @@ def init():
 def load_index(state):
     plugins = list(map(
         lambda x: x.replace('_', ' ').replace('.py', ''),
-        glm.plugin_scan(PLUGIN_DIRECTORY)
+        glm.plugin_scan(server.PLUGIN_DIRECTORY)
     ))
-    plugin_id = plugin_loader_id
+    plugin_id = server.plugin_loader_id
     return (state + 1, (plugins, plugin_id))
 
 @server.handle_message("LOADPLUGIN")
 def load_plugin(state, id_):
-    if plugin_loader is not None:
+    if server.plugin_loader is not None:
         plugin_loader_queue.put('END')
         plugin_loader_queue.join()
         # Never forget this   v on every .get()
         # plugin_loader_queue.task_done()
         plugin_loader.join() # Not required
 
-    plugin_loader_id = id_
-    plugin_loader = multiprocessing.Process(
+    server.plugin_loader_id = id_
+    server.plugin_loader = multiprocessing.Process(
         target=glm.plugin_loader,
         daemon=False,
         args=(
-            glm.plugin_scan(PLUGIN_DIRECTORY)[id_],
-            plugin_loader_queue, # Ending queue for events
+            glm.plugin_scan(server.PLUGIN_DIRECTORY)[id_],
+            server.plugin_loader_queue, # Ending queue for events
             True, # start
             server._matrix, # matrix
             server._show, # show
