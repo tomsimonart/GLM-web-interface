@@ -6,26 +6,21 @@ import marshal
 import argparse
 import selectors
 import threading
-import multiprocessing
 from os import path
-from GLM import glm
 from time import sleep
 from queue import Queue
 from GLM.source.libs.rainbow import msg
 
 BUFFSIZE = 512
-glm.PLUGIN_PACKAGE = "GLM.source.plugins"
-PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
 
 class Server(object):
     """Server object
     """
-    def __init__(self, buffsize=BUFFSIZE, pdir=PLUGIN_DIRECTORY):
+    def __init__(self, buffsize=BUFFSIZE):
         super().__init__()
         self._state = None
         self.limit = 100
         self._buffsize = buffsize
-        self._plugin_directory = pdir
         self._plugin_loader = None # Current plugin
         self._message_handlers = {}
         self._setup()
@@ -116,7 +111,7 @@ class Server(object):
         if message:
             mid, name, args, kwargs = marshal.loads(message)
             if name in self._message_handlers:
-                response, new_state = self._message_handlers[name](
+                new_state, response = self._message_handlers[name](
                     self._state, *args, **kwargs
                     )
                 self._state = new_state

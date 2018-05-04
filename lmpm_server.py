@@ -1,20 +1,59 @@
 #!/usr/bin/env python3
 
+import multiprocessing
+from GLM import glm
 from server import Server
+from GLM.source.libs.rainbow import msg
 
-s = Server()
 
-@s.init()
+glm.PLUGIN_PACKAGE = "GLM.source.plugins"
+PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
+plugin_loader = None
+plugin_loader_id = -1
+plugin_loader_queue = multiprocessing.JoinableQueue()
+
+server = Server()
+
+@server.init()
 def init():
     return 0
 
 # WEB CLIENT METHODS
-@s.handle_message("LOADPLUGIN")
-def loadplugin(state):
-    return ('response', state + 1)
+@server.handle_message("LOADINDEX")
+def load_index(state):
+    plugins = list(map(
+        lambda x: x.replace('_', ' ').replace('.py', ''),
+        glm.plugin_scan(PLUGIN_DIRECTORY)
+    ))
+    plugin_id = plugin_loader_id
+    return (state + 1, (plugins, plugin_id))
+
+@server.handle_message("LOADPLUGIN")
+def load_plugin(state, id_):
+    if plugin_loader is not None:
+        plugin_loader_queue.put('END')
+        plugin_loader_queue.join()
+        # Never forget this   v on every .get()
+        # plugin_loader_queue.task_done()
+        plugin_loader.join() # Not required
+
+    plugin_loader_id = id_
+    plugin_loader = multiprocessing.Process(
+        target=glm.plugin_loader,
+        daemon=False,
+        args=(
+            glm.plugin_scan(PLUGIN_DIRECTORY)[id_],
+            plugin_loader_queue, # Ending queue for events
+            True, # start
+            server._matrix, # matrix
+            server._show, # show
+            server._guishow # guishow
+            )
+        )
+    return (state + 1, id_)
 
 # WEB SERVER METHODS
 
 
 if __name__ == '__main__':
-    s.server_forever()
+    server.server_forever()
