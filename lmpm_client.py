@@ -14,6 +14,9 @@ class MainClient():
     def load_plugin(self, id_):
         return self.client.call("LOADPLUGIN", id_)
 
+    def load_webview(self):
+        return self.client.call("LOADWEBVIEW")
+
 
 class PluginClient():
     def __init__(self, addr):
@@ -23,4 +26,4 @@ class PluginClient():
         self.client.close()
 
     def refresh(self):
-        return self.client.call("REFRESH")
+        return self.client.call("SENDWEBVIEW")

@@ -19,7 +19,7 @@ class Screen:
     On each 'refresh' all the images are flattened to one Image and sent to
     the streamer
 
-    Screen must have the same size of the matrix
+    Screen must have the same size as the matrix
 
     Keyword arguments:
     x -- x height (default MAT_HEIGHT)

@@ -104,7 +104,7 @@
                 }
             });
 
-            $('#webview').load('/plugin/' + e.value + '/webview')
+            $('#webview').load('/plugin/webview')
         };
 
         function send_value(v) {
@@ -130,15 +130,6 @@
         poll_plugin_update();
 
     </script>
-    {% if plugin_id >= 0 %}
-    <meta id="my-data" data-name="{{ plugin_id }}">
-    <script type="text/javascript">
-        $(document).ready(function load_webview(){
-            console.log('load webview', "{{ plugin_id }}");
-            $('#webview').load('/plugin/' + "{{ plugin_id }}" + '/webview');
-        });
-    </script>
-    {% endif %}
     <style type="text/css">
         body,
         html {

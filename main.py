@@ -1,7 +1,7 @@
 import json
 import socket
+import lmpm_client
 from GLM import glm
-from lmpm_client import MainClient
 from GLM.source.libs.rainbow import msg
 from flask import Flask, render_template, redirect, request
 
@@ -14,7 +14,7 @@ server_addr = 'localhost'
 server_port = 9999
 addr = (server_addr, server_port)
 BUFFSIZE = 512
-client = MainClient(addr)
+client = lmpm_client.MainClient(addr)
 
 @app.route('/')
 def index():
@@ -36,8 +36,8 @@ def select_plugin(id_):
     return ''
 
 
-@app.route('/plugin/<int:id_>/webview')
-def webview(id_):
+@app.route('/plugin/webview')
+def webview():
     """Renders the control interface of a plugin
     """
     return render_template('webview.html', data="<p>to define</p>")

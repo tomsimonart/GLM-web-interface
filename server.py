@@ -157,6 +157,7 @@ class Client(threading.Thread):
         message = marshal.dumps((mid, name, args, kwargs))
         self._client.send(message)
         res = self._responses[mid].get()
+        self._responses[mid].task_done()
         del self._responses[mid]
         return res
 
