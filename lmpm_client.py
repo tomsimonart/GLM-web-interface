@@ -1,9 +1,9 @@
 from server import Client
 
-
 class MainClient():
     def __init__(self, addr):
-        self.client = Client(addr)
+        self._addr = addr
+        self.client = Client(self._addr)
 
     def close(self):
         self.client.close()
@@ -20,7 +20,8 @@ class MainClient():
 
 class PluginClient():
     def __init__(self, addr):
-        self.client = Client(addr)
+        self._addr = addr
+        self.client = Client(self._addr)
 
     def close(self):
         self.client.close()

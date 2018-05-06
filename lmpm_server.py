@@ -14,7 +14,8 @@ def init():
     server.PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
     server.plugin = None
     server.plugin_id = -1
-    server.plugin_queue = multiprocessing.JoinableQueue()
+    server.plugin_end = multiprocessing.Event()
+    server.plugin_events = multiprocessing.Queue()
     return 0
 
 # WEB CLIENT METHODS
@@ -30,21 +31,18 @@ def load_index(state):
 @server.handle_message("LOADPLUGIN")
 def load_plugin(state, id_):
     if server.plugin is not None:
-        server.plugin_queue.put('END')
-        server.plugin_queue.join()
+        server.plugin_end.set()
         del server.plugin_events
-        # Never forget this   v on every .get()
-        # server.plugin_queue.task_done()
-        server.plugin.join() # Not required
+        server.plugin.join()
 
-    server.plugin_events = multiprocessing.JoinableQueue()
+    server.plugin_events = multiprocessing.Queue()
     server.plugin_id = id_
     server.plugin = multiprocessing.Process(
         target=glm.plugin,
         daemon=False,
         args=(
             glm.plugin_scan(server.PLUGIN_DIRECTORY)[id_],
-            server.plugin_queue, # Ending queue for events
+            server.plugin_end, # Ending event
             server.plugin_events, # Events
             True, # start
             server._matrix, # matrix
