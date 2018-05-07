@@ -68,7 +68,15 @@ def get_state(state):
     if server.plugin:
         server.plugin_events.put({"GETSTATE": None})
         server.plugin_state = server.data_recv.recv()
-    return state + 1, server.plugin_state
+        return state + 1, server.plugin_state
+    else:
+        return state + 1, 0
+
+@server.handle_message("SENDEVENT")
+def send_event(state, event):
+    if server.plugin:
+        server.plugin_events.put({"EVENT": event})
+    return state + 1, 0
 
 # WEB SERVER METHODS
 

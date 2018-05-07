@@ -1,3 +1,4 @@
+from queue import Queue
 from time import sleep
 from .rainbow import msg
 from .screen import Screen
@@ -10,13 +11,14 @@ class PluginBase:
         self.version = "0.0.3"
         if start:
             self.template = "" # Template to render
+            self._events = Queue()
             self.__state = 0
             self.__rendered_data = None
             self.__data = data_send
             self.__pairs = {}
 
             self._end = end
-            self._events = events
+            self.__events = events
             self._matrix = matrix
             self._show = show
             self._guishow = guishow
@@ -39,27 +41,28 @@ class PluginBase:
         self.__rendered_data = self.templater.render()
 
     def __start(self):
-        while not self._end.is_set() or not self._events.empty():
+        while not self._end.is_set() or not self.__events.empty():
             self.__event_loop()
             self._start()
             self.screen.refresh()
 
     def __event_loop(self):
-        self.events = self._get_events()
-        if self.events:
-            if "LOADWEBVIEW" in self.events.keys():
+        self._get_events()
+        if not self._events.empty():
+            event = self._events.get()
+            if "LOADWEBVIEW" in event:
                 self.__data.send(self.get_rendered_data())
-            if "GETSTATE" in self.events.keys():
+            elif "GETSTATE" in event:
                 self.__data.send(self.__state)
-            self._event_loop()
+            elif "EVENT" in event:
+                _, (field, value) = event.popitem()
+                self.edit(field, value)
+            else:
+                self._event_loop(event)
 
     def _get_events(self):
-        events = {}
-        while not self._events.empty():
-            event_dict = self._events.get()
-            event = event_dict.popitem()
-            events[event[0]] = event[1]
-        return events
+        while not self.__events.empty():
+            self._events.put(self.__events.get())
 
     def register(self, field, method):
         self.__pairs[field] = method

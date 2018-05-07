@@ -49,6 +49,7 @@ def event():
     """Send an event received by the control interface by POST method to
     the server
     """
+    client.send_event((request.values['id'], request.values['value']))
     return ''
 
 

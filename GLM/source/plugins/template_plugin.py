@@ -18,5 +18,5 @@ class Plugin(PluginBase):
     def _start(self):
         pass
 
-    def _event_loop(self):
+    def _event_loop(self, event):
         pass
