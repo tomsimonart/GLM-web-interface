@@ -41,7 +41,7 @@ def webview():
     """Renders the control interface of a plugin
     """
     data = client.load_webview()
-    return render_template('webview.html', state=data[0], data=data[1])
+    return render_template('webview.html', data=data)
 
 
 @app.route('/plugin/event/', methods=['POST'])
@@ -52,8 +52,9 @@ def event():
     return ''
 
 
-@app.route('/update')
-def update():
+@app.route('/plugin/update/<int:state>')
+def update(state):
     """Requests an update of the webview to the server
     """
-    return render_template('update.html', update="<p>to define</p>")
+    has_update = client.get_webview_update(state)
+    return render_template('update.html', update=has_update)

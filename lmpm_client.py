@@ -1,6 +1,4 @@
 from server import Client
-addr = server.server_addr
-buffsize = server._buffsize
 
 class MainClient():
     def __init__(self, addr):
@@ -18,6 +16,9 @@ class MainClient():
 
     def load_webview(self):
         return self.client.call("LOADWEBVIEW")
+
+    def get_webview_update(self):
+        return self.client.call("GETWEBVIEWUPDATE", current_state)
 
 
 class PluginClient():

@@ -12,11 +12,12 @@ server = Server()
 def init():
     glm.PLUGIN_PACKAGE = "GLM.source.plugins"
     server.PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
-    server.plugin = None
-    server.plugin_id = -1
-    server.plugin_end = multiprocessing.Event()
-    server.plugin_events = multiprocessing.Queue()
-    server.data_out, server.data_in = multiprocessing.Pipe(False)
+    server.plugin = None # Current plugin process
+    server.plugin_id = -1 # Current plugin ID
+    server.plugin_end = multiprocessing.Event() # End of plugin event
+    server.plugin_events = multiprocessing.Queue() # Event queue
+    server.plugin_state = 0 # State of the plugin's webview
+    server.data_recv, server.data_send = multiprocessing.Pipe(False) # Data pipe
     return 0
 
 # WEB CLIENT METHODS
@@ -33,17 +34,17 @@ def load_index(state):
 def load_plugin(state, id_):
     if server.plugin is not None:
         server.plugin_end.set()
-        del server.plugin_events
+        # del server.plugin_events
         server.plugin.join()
-
-    server.plugin_events = multiprocessing.Queue()
+    # server.plugin_events = multiprocessing.Queue()
+    server.plugin_end.clear()
     server.plugin_id = id_
     server.plugin = multiprocessing.Process(
-        target=glm.plugin,
+        target=glm.plugin_loader,
         daemon=False,
         args=(
             glm.plugin_scan(server.PLUGIN_DIRECTORY)[id_],
-            server.pipe_in, # Web data sender
+            server.data_send, # Web data sender
             server.plugin_end, # Ending event
             server.plugin_events, # Events
             True, # start
@@ -52,19 +53,28 @@ def load_plugin(state, id_):
             server._guishow # guishow
             )
         )
+    server.plugin.start()
     return state + 1, id_
 
 @server.handle_message("LOADWEBVIEW")
 def load_webview(state):
-    server.plugin_events.put({"LOADWEBVIEW":None})
-    data = server.data_out.recv()
-    return state + 1, data
+    if server.plugin is not None:
+        server.plugin_events.put({"LOADWEBVIEW":None})
+        plugin_state, data = server.data_recv.recv()
+        server.plugin_state = plugin_state
+        return state + 1, data
+    else:
+        return state + 1, "<p>no data</p>"
+
+@server.handle_message("GETWEBVIEWUPDATE")
+def get_webview_update(state, current_state):
+    if current_state < server.plugin_state:
+        has_update = 1
+    else:
+        has_update = 0
+    return state + 1, has_update
 
 # WEB SERVER METHODS
-
-@server.handle_message("SENDWEBVIEW")
-def send_webview(state):
-    return state + 1,
 
 if __name__ == '__main__':
     server.server_forever()

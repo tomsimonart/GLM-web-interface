@@ -31,12 +31,16 @@ def import_plugin(plugin):
         msg("Import error", 2, "import_plugin", ie, level=0)
 
 
-def plugin_checker(main_plugin, queue_, start, matrix, show, guishow):
+def plugin_checker(
+        main_plugin, data_send, end, events, start, matrix, show, guishow
+        ):
     if not hasattr(main_plugin, "Plugin"):
         msg("Plugin outdated", 2, "plugin_checker", level=0)
         return False
     else:
-        loaded_plugin = main_plugin.Plugin(queue_, start, matrix, show, guishow)
+        loaded_plugin = main_plugin.Plugin(
+            data_send, end, events, start, matrix, show, guishow
+            )
     if not hasattr(loaded_plugin, "_start"):
         msg("Plugin outdated", 2, "plugin_checker", level=0)
         return False
@@ -52,12 +56,16 @@ def plugin_checker(main_plugin, queue_, start, matrix, show, guishow):
     return loaded_plugin
 
 
-def plugin_loader(plugin, queue_, start, matrix, show, guishow):
+def plugin_loader(plugin, data_send, end, events, start, matrix, show, guishow):
     main_plugin = import_plugin(PLUGIN_PACKAGE + "." + plugin.replace(".py", ''))
-    loaded_plugin = plugin_checker(main_plugin, queue_, False, matrix, show, guishow)
+    loaded_plugin = plugin_checker(
+        main_plugin, data_send, end, events, False, matrix, show, guishow
+        )
     if loaded_plugin is not False:
         print_plugin_info(loaded_plugin)
-        loaded_plugin = main_plugin.Plugin(queue_, start, matrix, show, guishow)
+        loaded_plugin = main_plugin.Plugin(
+            data_send, end, events, True, matrix, show, guishow
+            )
 
 def print_plugin_info(plugin):
     if hasattr(plugin, "name"):

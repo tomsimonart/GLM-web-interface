@@ -2,8 +2,8 @@ from ..libs.pluginbase import PluginBase
 from ..libs.text import Text
 
 class Plugin(PluginBase):
-    def __init__(self, data_in, end, events, start, matrix, show, guishow):
-        super().__init__(data_in, end, events, start, matrix, show, guishow)
+    def __init__(self, data_send, end, events, start, matrix, show, guishow):
+        super().__init__(data_send, end, events, start, matrix, show, guishow)
 
     def _make_layout(self):
         self.template = """\
@@ -13,6 +13,7 @@ class Plugin(PluginBase):
         """
         self.text = Text("sample text")
         self.screen.add(self.text, refresh=False)
+        self.register('matrix_text', self.text.edit)
 
     def _start(self):
         pass

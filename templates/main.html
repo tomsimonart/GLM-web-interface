@@ -104,7 +104,7 @@
                 }
             });
 
-            $('#webview').load('/plugin/webview')
+            $('#webview').load('/plugin/webview');
         };
 
         function send_value(v) {
@@ -122,12 +122,16 @@
             // var update = document.getElementById.innerHTML;
             console.log("polling...");
             setTimeout(function(){
-                $('#update').load('/update');
+                var has_update = document.getElementById('update').innerHTML
+                if (has_update > 0){
+                    $('#webview').load('/plugin/webview');
+                }
+                $('#update').load('/plugin/update/' + has_update);
                 poll_plugin_update();
             }, 5000);
         };
 
-        poll_plugin_update();
+        // poll_plugin_update();
 
     </script>
     <style type="text/css">
