@@ -17,8 +17,8 @@ class MainClient():
     def load_webview(self):
         return self.client.call("LOADWEBVIEW")
 
-    def get_webview_update(self):
-        return self.client.call("GETWEBVIEWUPDATE", current_state)
+    def get_state(self):
+        return self.client.call("GETSTATE")
 
 
 class PluginClient():

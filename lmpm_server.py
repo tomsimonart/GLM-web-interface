@@ -34,9 +34,7 @@ def load_index(state):
 def load_plugin(state, id_):
     if server.plugin is not None:
         server.plugin_end.set()
-        # del server.plugin_events
         server.plugin.join()
-    # server.plugin_events = multiprocessing.Queue()
     server.plugin_end.clear()
     server.plugin_id = id_
     server.plugin = multiprocessing.Process(
@@ -58,21 +56,19 @@ def load_plugin(state, id_):
 
 @server.handle_message("LOADWEBVIEW")
 def load_webview(state):
-    if server.plugin is not None:
+    if server.plugin:
         server.plugin_events.put({"LOADWEBVIEW":None})
-        plugin_state, data = server.data_recv.recv()
-        server.plugin_state = plugin_state
+        data = server.data_recv.recv()
         return state + 1, data
     else:
-        return state + 1, "<p>no data</p>"
+        return state + 1, "<p>no plugin loaded</p>"
 
-@server.handle_message("GETWEBVIEWUPDATE")
-def get_webview_update(state, current_state):
-    if current_state < server.plugin_state:
-        has_update = 1
-    else:
-        has_update = 0
-    return state + 1, has_update
+@server.handle_message("GETSTATE")
+def get_state(state):
+    if server.plugin:
+        server.plugin_events.put({"GETSTATE": None})
+        server.plugin_state = server.data_recv.recv()
+    return state + 1, server.plugin_state
 
 # WEB SERVER METHODS
 

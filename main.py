@@ -52,9 +52,9 @@ def event():
     return ''
 
 
-@app.route('/plugin/update/<int:state>')
-def update(state):
+@app.route('/plugin/update/')
+def update():
     """Requests an update of the webview to the server
     """
-    has_update = client.get_webview_update(state)
-    return render_template('update.html', update=has_update)
+    state = client.get_state()
+    return render_template('update.html', state=state)

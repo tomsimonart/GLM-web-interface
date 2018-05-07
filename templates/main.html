@@ -104,6 +104,7 @@
                 }
             });
 
+            document.getElementById('update').innerHTML = 0;
             $('#webview').load('/plugin/webview');
         };
 
@@ -126,12 +127,12 @@
                 if (has_update > 0){
                     $('#webview').load('/plugin/webview');
                 }
-                $('#update').load('/plugin/update/' + has_update);
+                $('#update').load('/plugin/update/');
                 poll_plugin_update();
             }, 5000);
         };
 
-        // poll_plugin_update();
+        poll_plugin_update();
 
     </script>
     <style type="text/css">

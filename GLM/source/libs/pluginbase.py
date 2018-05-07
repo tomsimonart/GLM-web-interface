@@ -48,8 +48,9 @@ class PluginBase:
         self.events = self._get_events()
         if self.events:
             if "LOADWEBVIEW" in self.events.keys():
-                del self.events['LOADWEBVIEW']
-                self.__data.send((self.__state, self.get_rendered_data()))
+                self.__data.send(self.get_rendered_data())
+            if "GETSTATE" in self.events.keys():
+                self.__data.send(self.__state)
             self._event_loop()
 
     def _get_events(self):
