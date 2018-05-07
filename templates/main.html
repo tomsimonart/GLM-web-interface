@@ -112,13 +112,18 @@
             // var update = document.getElementById.innerHTML;
             console.log("polling...");
             setTimeout(function(){
-                var state = document.getElementById('update').innerHTML
-                if (state > 0){
+                if (typeof state !== 'undefined'){
+                    var old_state = state;
+                    console.log(old_state)
+                }
+                var state = document.getElementById('update').innerHTML;
+                console.log(state);
+                if (state > old_state || state == 0){
                     $('#webview').load('/plugin/webview');
                 }
                 $('#update').load('/plugin/update/');
                 poll_plugin_update();
-            }, 5000);
+            }, 1000);
         };
 
         poll_plugin_update();
