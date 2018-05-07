@@ -112,8 +112,8 @@
             // var update = document.getElementById.innerHTML;
             console.log("polling...");
             setTimeout(function(){
-                var has_update = document.getElementById('update').innerHTML
-                if (has_update > 0){
+                var state = document.getElementById('update').innerHTML
+                if (state > 0){
                     $('#webview').load('/plugin/webview');
                 }
                 $('#update').load('/plugin/update/');

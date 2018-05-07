@@ -12,7 +12,7 @@ class PluginBase:
         if start:
             self.template = "" # Template to render
             self._events = Queue()
-            self.__state = 0
+            self.__state = 1
             self.__rendered_data = None
             self.__data = data_send
             self.__pairs = {}
@@ -64,6 +64,9 @@ class PluginBase:
         while not self.__events.empty():
             self._events.put(self.__events.get())
 
+    def inc_state(self):
+        self.__state += 1
+
     def register(self, field, method):
         self.__pairs[field] = method
 
@@ -74,4 +77,4 @@ class PluginBase:
         self.__pairs[field](value)
         self.templater.edit_value(field, value)
         self.__rendered_data = self.templater.render()
-        self.__state += 1
+        self.inc_state()
