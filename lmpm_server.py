@@ -16,6 +16,7 @@ def init():
     server.plugin_id = -1
     server.plugin_end = multiprocessing.Event()
     server.plugin_events = multiprocessing.Queue()
+    server.data_out, server.data_in = multiprocessing.Pipe(False)
     return 0
 
 # WEB CLIENT METHODS
@@ -42,6 +43,7 @@ def load_plugin(state, id_):
         daemon=False,
         args=(
             glm.plugin_scan(server.PLUGIN_DIRECTORY)[id_],
+            server.pipe_in, # Web data sender
             server.plugin_end, # Ending event
             server.plugin_events, # Events
             True, # start
@@ -54,7 +56,9 @@ def load_plugin(state, id_):
 
 @server.handle_message("LOADWEBVIEW")
 def load_webview(state):
-    return state + 1,
+    server.plugin_events.put({"LOADWEBVIEW":None})
+    data = server.data_out.recv()
+    return state + 1, data
 
 # WEB SERVER METHODS
 

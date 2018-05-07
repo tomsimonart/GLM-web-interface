@@ -1,4 +1,6 @@
 from server import Client
+addr = server.server_addr
+buffsize = server._buffsize
 
 class MainClient():
     def __init__(self, addr):

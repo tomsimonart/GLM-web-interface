@@ -40,7 +40,8 @@ def select_plugin(id_):
 def webview():
     """Renders the control interface of a plugin
     """
-    return render_template('webview.html', data="<p>to define</p>")
+    data = client.load_webview()
+    return render_template('webview.html', state=data[0], data=data[1])
 
 
 @app.route('/plugin/event/', methods=['POST'])
