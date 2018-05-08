@@ -4,6 +4,7 @@ from ..libs.text import Text
 class Plugin(PluginBase):
     def __init__(self, start, *args):
         super().__init__(start, *args)
+        self.version = "0.9.0"
 
     def _make_layout(self):
         self.template = """\
@@ -12,7 +13,6 @@ class Plugin(PluginBase):
         {{submit;button;Button}}
         """
         self.text = Text("infected")
-        self.screen.fps = 5
         self.screen.add(self.text, refresh=False)
         self.register('matrix_text', self.text.edit)
 

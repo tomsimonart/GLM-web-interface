@@ -4,14 +4,15 @@ from .rainbow import msg
 from .screen import Screen
 from .templater import Templater
 
+VERSION = "0.9.0"
+
 class PluginBase:
     def __init__(self, start, *args):
         self.name = "No name"
         self.author = "No author"
-        self.version = "0.0.3"
         if start:
             self.template = "" # Template to render
-            self._events = Queue()
+            self.__event_queue = Queue()
             self.__state = 1
             self.__rendered_data = None
             self.__pairs = {}
@@ -48,9 +49,9 @@ class PluginBase:
             self.screen.refresh()
 
     def __event_loop(self):
-        self._get_events()
-        if not self._events.empty():
-            event = self._events.get()
+        self.__get_events()
+        if not self.__event_queue.empty():
+            event = self.__event_queue.get()
             msg("Event", 0, "PluginBase", event, level=4, slevel="events")
             if "LOADWEBVIEW" in event:
                 self.__data.send(self.get_rendered_data())
@@ -62,9 +63,9 @@ class PluginBase:
             else:
                 self._event_loop(event)
 
-    def _get_events(self):
+    def __get_events(self):
         while not self.__events.empty():
-            self._events.put(self.__events.get())
+            self.__event_queue.put(self.__events.get())
 
     def inc_state(self):
         self.__state += 1
