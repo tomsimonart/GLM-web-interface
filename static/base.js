@@ -24,16 +24,18 @@
 
     function check_active_element(item, index) {
         if (item === document.activeElement){
-            no_focus = false
+            no_focus = false;
+            console.log(no_focus);
         }
     }
 
     function check_focus() {
         webview = document.getElementById('webview');
-        var c = webview.childNodes;
-        var no_focus = true;
-        c.forEach(check_active_element)
-        return no_focus;
+        c = webview.childNodes;
+        no_focus = true;
+        console.log(document.activeElement);
+        c.forEach(check_active_element);
+        return no_focus
     }
 
     function plugin_update() {
@@ -47,7 +49,7 @@
         setTimeout(function(){
             plugin_update();
             poll_plugin_update();
-        }, 10000);
+        }, 5000);
     };
 
     plugin_update();
