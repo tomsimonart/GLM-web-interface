@@ -92,43 +92,6 @@
             background: linear-gradient(salmon, crimson);
         }
     </style>
-    <script type="text/javascript">
-        function select_plugin(e) {
-            console.log('load plugin ' + e.value);
-
-            $.ajax({
-                url: '/plugin/' + e.value,
-                method: 'GET',
-                error: function(xhr, status, err) {
-                    console.log(xhr, status, err.toString());
-                }
-            });
-
-            document.getElementById('update').innerHTML = 0;
-            $('#webview').load('/plugin/webview');
-        };
-
-        function poll_plugin_update() {
-            // var update = document.getElementById.innerHTML;
-            console.log("polling...");
-            setTimeout(function(){
-                if (typeof state !== 'undefined'){
-                    var old_state = state;
-                    console.log(old_state)
-                }
-                var state = document.getElementById('update').innerHTML;
-                console.log(state);
-                if (state > old_state || state == 0){
-                    $('#webview').load('/plugin/webview');
-                }
-                $('#update').load('/plugin/update/');
-                poll_plugin_update();
-            }, 1000);
-        };
-
-        poll_plugin_update();
-
-    </script>
     <style type="text/css">
         body,
         html {
@@ -150,7 +113,7 @@
 </head>
 
 <body>
-    <div id='update'></div>
+    <div id='update'>0</div>
     <div class="container">
         <div class="row center-center" style="height:100%;">
             <div class="col-xs-12 col-lg-4 col-md-6">
@@ -174,15 +137,10 @@
                     </div>
                 </div>
             </div>
-            <div id="webview" class="col-xs-12 col-lg-4 col-md-6">
-                <!-- space for plugin content -->
+            <div id="webview" class="col-xs-12 col-lg-4 col-md-6" onmouseover="focus_webview(this)" onmouseout="unfocus_webview(this)">
             </div>
         </div>
     </div>
-    <!-- <div class="container" style="background-color:grey;">
-        <div class="row center-center" style="height=50%">
-        </div>
-    </div> -->
+    <script src="{{ url_for('static', filename='base.js') }}"></script>
 </body>
-
 </html>
