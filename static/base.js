@@ -1,6 +1,4 @@
     function select_plugin(e) {
-        console.log('load plugin ' + e.value);
-
         $.ajax({
             url: '/plugin/' + e.value,
             method: 'GET',
@@ -25,7 +23,6 @@
     function check_active_element(item, index) {
         if (item === document.activeElement){
             no_focus = false;
-            console.log(no_focus);
         }
     }
 
@@ -33,15 +30,19 @@
         webview = document.getElementById('webview');
         c = webview.childNodes;
         no_focus = true;
-        console.log(document.activeElement);
         c.forEach(check_active_element);
         return no_focus
     }
 
     function plugin_update() {
+        old_update = new_update;
         $('#update').load('/plugin/update/');
+        new_update = Number(document.getElementById('update').innerHTML);
+        console.log(old_update + ' ' + new_update);
         if (check_focus()){
-            $('#webview').load('/plugin/webview');
+            if (old_update < new_update) {
+                $('#webview').load('/plugin/webview');
+            }
         }
     }
 
@@ -52,5 +53,6 @@
         }, 5000);
     };
 
-    plugin_update();
+    new_update = 0;
+    $('#webview').load('/plugin/webview');
     poll_plugin_update();

@@ -50,6 +50,7 @@ class PluginBase:
         self._get_events()
         if not self._events.empty():
             event = self._events.get()
+            msg("Event", 0, "PluginBase", event, level=4, slevel="events")
             if "LOADWEBVIEW" in event:
                 self.__data.send(self.get_rendered_data())
             elif "GETSTATE" in event:
@@ -74,7 +75,8 @@ class PluginBase:
         del self.__pairs[field]
 
     def edit(self, field, value):
-        self.__pairs[field](value)
-        self.templater.edit_value(field, value)
-        self.__rendered_data = self.templater.render()
-        self.inc_state()
+        if field in self.__pairs.keys():
+            self.__pairs[field](value)
+            self.templater.edit_value(field, value)
+            self.__rendered_data = self.templater.render()
+            self.inc_state()
