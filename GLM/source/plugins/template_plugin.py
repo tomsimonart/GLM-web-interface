@@ -4,6 +4,8 @@ from ..libs.text import Text
 class Plugin(PluginBase):
     def __init__(self, start, *args):
         super().__init__(start, *args)
+        self.name = "Example"
+        self.author = "Infected"
         self.version = "0.9.0"
 
     def _make_layout(self):

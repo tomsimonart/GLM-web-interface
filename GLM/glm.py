@@ -116,22 +116,23 @@ def plugin_loader(plugin, start, *args):
         loaded_plugin = main_plugin.Plugin(True, *args)
     else:
         msg('ERROR', 2, 'plugin_loader', 'failsafe plugin activation')
+        print_plugin_info(failsafe.Plugin(False, *args))
         loaded_plugin = failsafe.Plugin(True, *args)
 
 
 def print_plugin_info(plugin):
     if hasattr(plugin, "name"):
-        msg(plugin.name, 0, "Plugin", level=2)
+        msg(plugin.name, 0, "Plugin", level=2, slevel='info')
     else:
-        msg("No name", 1, "print_plugin_info", level=2)
+        msg("No name", 1, "Plugin", level=1)
     if hasattr(plugin, "author"):
-        msg(plugin.author, 0, 'Plugin', level=2)
+        msg(plugin.author, 0, 'Plugin', level=2, slevel='info')
     else:
-        msg("No author", 1, "print_plugin_info", level=2)
+        msg("No author", 1, "Plugin", level=1)
     if hasattr(plugin, "version"):
-        msg(plugin.version, 0, 'Plugin', level=2)
+        msg(plugin.version, 0, 'Plugin', level=2, slevel='info')
     else:
-        msg("No version", 1, "print_plugin_info", level=2)
+        msg("No version", 1, "Plugin", level=1)
 
 
 def plugin_selector(plugins):
