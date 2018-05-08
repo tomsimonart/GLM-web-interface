@@ -41,11 +41,11 @@ def load_plugin(state, id_):
         target=glm.plugin_loader,
         daemon=False,
         args=(
-            glm.plugin_scan(server.PLUGIN_DIRECTORY)[id_],
+            glm.plugin_scan(server.PLUGIN_DIRECTORY)[id_], # plugin
+            True, # start
             server.data_send, # Web data sender
             server.plugin_end, # Ending event
             server.plugin_events, # Events
-            True, # start
             server._matrix, # matrix
             server._show, # show
             server._guishow # guishow

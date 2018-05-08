@@ -2,8 +2,8 @@ from ..libs.pluginbase import PluginBase
 from ..libs.text import Text
 
 class Plugin(PluginBase):
-    def __init__(self, data_send, end, events, start, matrix, show, guishow):
-        super().__init__(data_send, end, events, start, matrix, show, guishow)
+    def __init__(self, start, *args):
+        super().__init__(start, *args)
 
     def _make_layout(self):
         self.template = """\

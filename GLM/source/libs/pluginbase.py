@@ -5,7 +5,7 @@ from .screen import Screen
 from .templater import Templater
 
 class PluginBase:
-    def __init__(self, data_send, end, events, start, matrix, show, guishow):
+    def __init__(self, start, *args):
         self.name = "No name"
         self.author = "No author"
         self.version = "0.0.3"
@@ -14,19 +14,20 @@ class PluginBase:
             self._events = Queue()
             self.__state = 1
             self.__rendered_data = None
-            self.__data = data_send
             self.__pairs = {}
 
-            self._end = end
-            self.__events = events
-            self._matrix = matrix
-            self._show = show
-            self._guishow = guishow
+            # Args
+            self.__data = args[0] # data_send
+            self.__end = args[1] # end
+            self.__events = args[2] # events
+            self.matrix = args[3] # matrix
+            self.show = args[4] # show
+            self.guishow = args[5] # guishow
 
             self.screen = Screen(
-                matrix=self._matrix,
-                show=self._show,
-                guishow=self._guishow
+                matrix=self.matrix,
+                show=self.show,
+                guishow=self.guishow
                 )
             self.__make_layout()
             self.__start()
@@ -41,7 +42,7 @@ class PluginBase:
         self.__rendered_data = self.templater.render()
 
     def __start(self):
-        while not self._end.is_set() or not self.__events.empty():
+        while not self.__end.is_set() or not self.__events.empty():
             self.__event_loop()
             self._start()
             self.screen.refresh()
