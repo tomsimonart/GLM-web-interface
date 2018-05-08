@@ -7,6 +7,7 @@
 
 import os
 from .image import Image
+from .rainbow import msg
 
 FONT_DIR = os.path.join(os.path.dirname(__file__), '../../fonts/')
 
@@ -38,9 +39,8 @@ class Font:
 
     def char(self, char):
         if char not in self.font.keys():
-            raise Exception(
-                'Font: character not found error [{}]'.format(char)
-                )
+            msg("Character not in font", 2, "text.Font.char", level=0)
+            char = '?'
         return Image(pixmap=self.font[char])
 
 
@@ -57,7 +57,7 @@ class Text(Image):
     DEFAULT_FONT = 'font'
 
     def __init__(self, text='', spacing=1, font=None):
-        super(Image, self).__init__()
+        super().__init__()
         self.edit(text, spacing, font)
 
     def generate(self):
@@ -81,7 +81,7 @@ class Text(Image):
         """
         self.spacing = spacing
         self.text = str(text).strip('\n')
-        if self.text == '':
+        if self.text == '' or None:
             self.text = ' '
 
         elif font is None:
@@ -89,7 +89,7 @@ class Text(Image):
 
         if not hasattr(self, 'font'):  # Load font once
             self.edit_font(font)
-        elif self.font.font_file != FONT_DIR + font + '.txt':
+        elif self.font.font_file != str(FONT_DIR) + str(font) + '.txt':
             self.edit_font(font)
 
         self.generate()

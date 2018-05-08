@@ -12,6 +12,7 @@ class Plugin(PluginBase):
         {{submit;button;My Button}}
         """
         self.text = Text("sample text")
+        self.screen.fps = 1
         self.screen.add(self.text, refresh=False)
         self.register('matrix_text', self.text.edit)
 
