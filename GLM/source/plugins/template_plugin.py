@@ -7,12 +7,12 @@ class Plugin(PluginBase):
 
     def _make_layout(self):
         self.template = """\
-        {{ title;label;My Input Label }}{{ matrix_text;input;example }}{# Comment #}
-        {% <h1>Raw html</h1> %}{# ID cannot start with html_ #}
-        {{submit;button;My Button}}
+        {{ title;label;My Input Label }}{{ matrix_text;input;infected }}{# Comment #}
+        {% <marquee>ugly marquee</marquee> %}{# ID cannot start with html_ #}
+        {{submit;button;Button}}
         """
-        self.text = Text("sample text")
-        self.screen.fps = 1
+        self.text = Text("infected")
+        self.screen.fps = 5
         self.screen.add(self.text, refresh=False)
         self.register('matrix_text', self.text.edit)
 
