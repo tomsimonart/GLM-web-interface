@@ -38,16 +38,19 @@ class Screen:
             fps=0,
             tty='/dev/ttyACM0'):
 
-        if fps > 0:
-            self.fps = 1 / fps
-        else:
-            self.fps = 0
+        self.set_fps(fps)
         self.image = Image(width=width, height=height)
         self.streamer = Stream(matrix=matrix, tty=tty)
         self.show = show
         self.childs = []
         if guishow:
             self.show_gui()
+
+    def set_fps(self, fps):
+        if fps > 0:
+            self.fps = 1 / fps
+        else:
+            self.fps = 0
 
     def add(self, element, x=0, y=0, refresh=True, mode="fill", name="Child"):
         """
