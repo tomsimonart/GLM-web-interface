@@ -52,7 +52,7 @@ class Screen:
         else:
             self.fps = 0
 
-    def add(self, element, x=0, y=0, refresh=True, mode="fill", name="Child"):
+    def add(self, element, x=0, y=0, refresh=False, mode="fill", name="Child"):
         """
         Add a new Image to the childs.
 
