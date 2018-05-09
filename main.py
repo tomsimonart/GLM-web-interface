@@ -1,11 +1,9 @@
 import json
 import socket
-import traceback
+import lmpm_client
 from GLM import glm
-from random import randint
 from GLM.source.libs.rainbow import msg
-from multiprocessing import Process, Queue
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, request, send_from_directory
 
 app = Flask(__name__)
 app.debug = True
@@ -14,80 +12,50 @@ PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
 
 server_addr = 'localhost'
 server_port = 9999
-
+addr = (server_addr, server_port)
 BUFFSIZE = 512
-
+client = lmpm_client.MainClient(addr)
 
 @app.route('/')
 def index():
-    plugins = list(map(
-        lambda x: x.replace('_', ' ').replace('.py', ''),
-        glm.plugin_scan(PLUGIN_DIRECTORY)
-    ))
-    return render_template('main.html', plugins=enumerate(plugins))
+    """Loads the index and list plugins for further selection
+    """
+    plugins, plugin_id = client.load_index()
+    return render_template(
+        'main.html',
+        plugins=enumerate(plugins),
+        plugin_id=plugin_id
+        )
 
 
-@app.route('/plugin/<int:id>')
-def select_plugin(id):
-    msg("Plugin selected")
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try:
-        client.connect((server_addr, server_port))
-    except socket.error as error:
-        if error.errno == socket.errno.ECONNREFUSED:
-            msg("connection refused with server", 3)
-    else:
-        client.send(b"web_client")
-        status = client.recv(BUFFSIZE).decode()
-        if status == "a:client_connected":
-            event = json.dumps({"LOADPLUGIN": id}).encode()
-            client.send(event)
-            status = client.recv(BUFFSIZE).decode()
-
-            client.send(b"EOT")
-            client.close()
+@app.route('/plugin/<int:id_>')
+def select_plugin(id_):
+    """Load a plugin by it's ID
+    """
+    client.load_plugin(id_)
     return ''
 
-@app.route('/plugin/<int:id>/webview')
-def webview(id):
-    """ Request data from server then render it's template
-    """
-    data = '' # No data
-    # Connection to server
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        client.connect((server_addr, server_port))
-    except socket.error as error:
-        if error.errno == socket.errno.ECONNREFUSED:
-            msg("connection refused with server", 3)
-    else:
-        client.send(b"web_client")
-        status = client.recv(BUFFSIZE).decode()
-        if status == "a:client_connected":
-            event = json.dumps({"READ": "REFRESH"}).encode()
-            client.send(event)
-            data = client.recv(BUFFSIZE).decode()
 
-        client.send(b"EOT")
-        client.close()
+@app.route('/plugin/webview')
+def webview():
+    """Renders the control interface of a plugin
+    """
+    data = client.load_webview()
     return render_template('webview.html', data=data)
 
 
-@app.route('/plugin/<int:id>/<event>')
-def event(id, event):
-    # Need to open a event client on each plugins
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((server_addr, server_port))
-    client.send("web_client")
-    status = client.recv(BUFFSIZE).decode()
-    if status == "a:client_connected":
-        event = json.dumps(
-            {'WRITE': {'0_input': 'sample input', '1_button': 'pressed'}}
-            ).encode()
-        client.send(event)
-        status = client.recv(BUFFSIZE).decode()
-
-    client.send(b"EOT")
-    client.close()
+@app.route('/plugin/event/', methods=['POST'])
+def event():
+    """Send an event received by the control interface by POST method to
+    the server
+    """
+    client.send_event((request.values['id'], request.values['value']))
     return ''
+
+
+@app.route('/plugin/update/')
+def update():
+    """Requests an update of the webview to the server
+    """
+    state = client.get_state()
+    return render_template('update.html', state=state)
