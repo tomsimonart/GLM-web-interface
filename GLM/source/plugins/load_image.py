@@ -2,15 +2,17 @@ from ..libs.pluginbase import PluginBase
 
 class Plugin(PluginBase):
     def __init__(self, start, *args):
+        self.data_dir = "load_image"
         super().__init__(start, *args)
         self.version = "0.10.0"
-        self.data_dir = "minimal"
 
     def _make_layout(self):
         """Here is where the ingredients to bake a
         great plugin and webview template go
         """
-        pass
+        self.background = self.load_image('background')
+        self.screen.set_fps(5)
+        self.screen.add(self.background)
 
     def _event_loop(self, event):
         """Event getter

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from .image import Image
 from os import remove
 import sys
 
@@ -72,6 +73,18 @@ def clean_pbm(file_in, file_out):
         fo.write(match_size(fi))
         fi.close()
         fo.close()
+
+def load_image(file_in):
+    """Loads a pbm file and return an Image object
+    """
+    with open(file_in, 'r') as file:
+        raw_image = match_size(file)
+        image = Image(pixmap=raw_to_pixmap(raw_image))
+        return image
+
+def raw_to_pixmap(data):
+    pixmap = [list(map(int, pl)) for pl in data.strip('\n').split('\n')]
+    return pixmap
 
 def convert_to_pbm(data, file_name, dimension):
     """

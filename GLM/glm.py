@@ -105,6 +105,13 @@ def plugin_checker(main_plugin, start, *args):
         msg('ERROR', 2, 'plugin_checker', e_reason, level=0, slevel='check')
         return None
 
+    if hasattr(loaded_plugin, 'data_dir'): # Check if data_dir exists
+        msg('OK', 0, 'plugin_checker', 'data_dir', level=2, slevel='check')
+    else:
+        e_reason = 'No data_dir'
+        msg('ERROR', 2, 'plugin_checker', e_reason, level=0, slevel='check')
+        return None
+
     return loaded_plugin
 
 

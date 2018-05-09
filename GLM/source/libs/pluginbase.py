@@ -1,8 +1,10 @@
+import os
 from queue import Queue
 from time import sleep
 from .rainbow import msg
 from .screen import Screen
 from .templater import Templater
+from .imageloader import load_image
 
 VERSION = "0.10.0"
 
@@ -16,6 +18,7 @@ class PluginBase:
             self.__state = 1
             self.__rendered_data = None
             self.__pairs = {}
+            self.__plugindata_path = ('GLM/plugindata/')
 
             # Args
             self.__data = args[0] # data_send
@@ -30,8 +33,12 @@ class PluginBase:
                 show=self.show,
                 guishow=self.guishow
                 )
+            self.__set_path()
             self.__make_layout()
             self.__start()
+
+    def __set_path(self):
+        self.__path = os.path.join(self.__plugindata_path, self.data_dir)
 
     def get_rendered_data(self):
         return self.__rendered_data
@@ -82,3 +89,8 @@ class PluginBase:
             self.templater.edit_value(field, value)
             self.__rendered_data = self.templater.render()
             self.inc_state()
+
+    def load_image(self, path):
+        image_name = path + '.pbm'
+        print(os.getcwd())
+        return load_image(os.path.join(self.__path, image_name))
