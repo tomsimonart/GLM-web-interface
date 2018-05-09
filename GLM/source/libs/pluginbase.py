@@ -4,7 +4,7 @@ from .rainbow import msg
 from .screen import Screen
 from .templater import Templater
 
-VERSION = "0.9.0"
+VERSION = "0.10.0"
 
 class PluginBase:
     def __init__(self, start, *args):

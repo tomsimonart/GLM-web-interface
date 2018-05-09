@@ -59,6 +59,7 @@ class Text(Image):
     def __init__(self, text='', spacing=1, font=None):
         super().__init__()
         self.edit(text, spacing, font)
+        self.font_selection = font
 
     def generate(self):
         """
@@ -85,7 +86,10 @@ class Text(Image):
             self.text = ' '
 
         elif font is None:
-            font = Text.DEFAULT_FONT
+            if self.font_selection is not None:
+                font = self.font_selection
+            else:
+                font = Text.DEFAULT_FONT
 
         if not hasattr(self, 'font'):  # Load font once
             self.edit_font(font)
