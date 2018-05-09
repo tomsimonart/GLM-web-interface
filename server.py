@@ -11,7 +11,7 @@ from time import sleep
 from queue import Queue
 from GLM.source.libs.rainbow import msg
 
-BUFFSIZE = 512
+BUFFSIZE = 2048
 
 class Server(object):
     """Server object
@@ -129,7 +129,7 @@ class Server(object):
         self._selector.close()
 
 class Client(threading.Thread):
-    def __init__(self, addr, buffsize=512):
+    def __init__(self, addr, buffsize=BUFFSIZE):
         super().__init__()
         self.setDaemon(True)
         self._server_addr = addr
