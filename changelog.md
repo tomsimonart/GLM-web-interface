@@ -1,3 +1,34 @@
+## 0.9.0
+* Plugins now inherit from __PluginBase__, it's now pretty simple to make plugins
+
+* minimal plugin:
+    ```python
+    from ..libs.pluginbase import PluginBase
+
+    class Plugin(PluginBase):
+        def __init__(self, start, *args):
+            super().__init__(start, *args)
+            self.version = "0.9.0"
+
+        def _make_layout(self):
+            """Here is where the ingredients to bake a
+            great plugin and webview template go
+            """
+            pass
+
+        def _event_loop(self, event):
+            """Event getter
+            before every _start cycle
+            """
+            pass
+
+        def _start(self):
+            """Main loop of the plugin
+            this includes a refresh of self.screen
+            """
+            pass
+    ```
+
 ## 0.0.3
 * Plugins and libs have to use relative imports
 
