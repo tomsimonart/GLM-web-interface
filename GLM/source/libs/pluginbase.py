@@ -1,4 +1,5 @@
 import os
+from abc import ABC, abstractmethod
 from queue import Queue
 from time import sleep
 from .rainbow import msg
@@ -8,10 +9,12 @@ from .imageloader import load_image
 
 VERSION = "0.10.0"
 
-class PluginBase:
-    def __init__(self, start, *args):
+class PluginBase(ABC):
+    def __init__(self, start, *args):²
+        self.data_dir = ""
         self.name = "No name"
         self.author = "No author"
+        print(os.path.basename(__file__))
         if start:
             self.template = "" # Template to render
             self.__event_queue = Queue()
@@ -83,14 +86,18 @@ class PluginBase:
     def unregister(self, field):
         del self.__pairs[field]
 
-    def edit(self, field, value):
+    def edit(self, field, value=None, *args, **kwargs):
         if field in self.__pairs.keys():
-            self.__pairs[field](value)
-            self.templater.edit_value(field, value)
+            self.__pairs[field](*args, **kwargs)
+            if value:
+                self.templater.edit_value(field, value)
             self.__rendered_data = self.templater.render()
             self.inc_state()
 
     def load_image(self, path):
         image_name = path + '.pbm'
-        print(os.getcwd())
         return load_image(os.path.join(self.__path, image_name))
+
+    def load_template(self, path):
+        template_name = path + '.template'
+        return None # TODO

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from .image import Image
-from os import remove
 import sys
+from .image import Image
+from .rainbow import msg
 
 VERBOSE = False
 
@@ -12,10 +12,7 @@ def match_size(f):
     """
     line = f.readline().replace('\n','')
     if line != 'P1': # PBM signature check
-        print('Format: Error', file=sys.stderr)
-        exit()
-    else:
-        print('Format: OK', file=sys.stderr)
+        msg('Wrong format', 2, "imageloader", line, level=0)
 
     check = True
 
@@ -23,17 +20,10 @@ def match_size(f):
         line = f.readline().replace('\n','')
         if line != '':
             if line.lstrip()[0] == '#': # PBM author comments
-                print(line, file=sys.stderr)
+                msg('Info', 0, 'imageloader.match_size', line, level=3)
             else:
                 check = False
                 dimension = list(map(int, line.split()))
-                # Dimentions of the pbm matrix
-                if dimension <= [64,16]:
-                    print('Dimensions: OK for led matrix', file=sys.stderr)
-                else:
-                    print('Dimensions: Not compatible with led matrix',
-                        file=sys.stderr)
-
                 return arrange(f.read(), dimension)
 
 

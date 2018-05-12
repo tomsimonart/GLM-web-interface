@@ -2,8 +2,8 @@ from ..libs.pluginbase import PluginBase
 
 class Plugin(PluginBase):
     def __init__(self, start, *args):
-        self.data_dir = "load_image"
         super().__init__(start, *args)
+        self.data_dir = "load_image"
         self.version = "0.10.0"
 
     def _make_layout(self):
