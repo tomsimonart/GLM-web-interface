@@ -10,18 +10,15 @@ from .imageloader import load_image
 VERSION = "0.10.0"
 
 class PluginBase(ABC):
-    def __init__(self, start, *args):²
-        self.data_dir = ""
-        self.name = "No name"
-        self.author = "No author"
-        print(os.path.basename(__file__))
+    def __init__(self, start, *args):
+        self.__plugin_info()
         if start:
             self.template = "" # Template to render
             self.__event_queue = Queue()
             self.__state = 1
             self.__rendered_data = None
             self.__pairs = {}
-            self.__plugindata_path = ('GLM/plugindata/')
+            self.__path = ('GLM/plugindata/')
 
             # Args
             self.__data = args[0] # data_send
@@ -36,15 +33,22 @@ class PluginBase(ABC):
                 show=self.show,
                 guishow=self.guishow
                 )
-            self.__set_path()
             self.__make_layout()
             self.__start()
 
-    def __set_path(self):
-        self.__path = os.path.join(self.__plugindata_path, self.data_dir)
+    @abstractmethod
+    def _plugin_info(self):
+        self.data_dir = "./"
+        self.name = "No Name"
+        self.author = "No author"
+        self.version = "0.0.0"
 
-    def get_rendered_data(self):
-        return self.__rendered_data
+    def __plugin_info(self):
+        self._plugin_info()
+
+    @abstractmethod
+    def _make_layout(self):
+        pass
 
     def __make_layout(self):
         self._make_layout()
@@ -52,11 +56,19 @@ class PluginBase(ABC):
         self.templater.parse()
         self.__rendered_data = self.templater.render()
 
+    @abstractmethod
+    def _start(self):
+        pass
+
     def __start(self):
         while not self.__end.is_set() or not self.__events.empty():
             self.__event_loop()
             self._start()
             self.screen.refresh()
+
+    @abstractmethod
+    def _event_loop(self):
+        pass
 
     def __event_loop(self):
         self.__get_events()
@@ -77,6 +89,9 @@ class PluginBase(ABC):
         while not self.__events.empty():
             self.__event_queue.put(self.__events.get())
 
+    def get_rendered_data(self):
+        return self.__rendered_data
+
     def inc_state(self):
         self.__state += 1
 
@@ -96,7 +111,8 @@ class PluginBase(ABC):
 
     def load_image(self, path):
         image_name = path + '.pbm'
-        return load_image(os.path.join(self.__path, image_name))
+        image_path = os.path.join(self.__path, self.data_dir, image_name)
+        return load_image(image_path)
 
     def load_template(self, path):
         template_name = path + '.template'
