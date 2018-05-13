@@ -59,7 +59,6 @@ class Screen:
         msg("Wrong type", 2, "Screen.check_type", type(element), level=0)
         return False
 
-
     def set_fps(self, fps):
         if fps > 0:
             self._fps = 1 / fps
@@ -117,9 +116,6 @@ class Screen:
 
         return False
 
-
-
-
     def remove(self, *names):
         """Delete one or more childs by their name
         Returns True if a child was deleted otherwise False
@@ -152,7 +148,6 @@ class Screen:
         number_of_childs = len(self.__childs)
         self.__childs = []
         msg("Removed %i childs" % number_of_childs, 1, level=2)
-
 
     def sleep_fps(self):
         """Rather precise (+0.00000x) fps waiter
