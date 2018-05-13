@@ -66,24 +66,73 @@ class Screen:
         else:
             self._fps = 0
 
-    def add(self, element, x=0, y=0, refresh=False, mode="fill", name="Child"):
+    def add(self, element, name="default", **kwargs):
         """
         Add a new Image to the childs.
 
         Keyword arguments:
-        image -- Image
+        element -- Image
         x -- x paste location (default 0)
         y -- y paste location (default 0)
         refresh -- blank Image after refresh (default True)
         mode -- paste mode [Image.paste()] (default "fill")
         name -- name (default "Child")
         """
+        x = kwargs.get('x', 0)
+        y = kwargs.get('y', 0)
+        refresh = kwargs.get('refresh', False)
+        mode = kwargs.get('mode', 'fill')
         if self.check_type(element):
             self.__childs.append(
                 (element.screen_data(), x, y, refresh, mode, name)
                 )
 
-    def remove(self, id_):
+    def insert(self, position, element, name="default", **kwargs):
+        """Inserts a child to the screen before 'position'
+        Position can be a child name (first occurence) or an index
+        Returns True for success
+
+        Keyword arguments:
+        position -- Index or name to insert before
+        element -- Image
+        x -- x paste location (default 0)
+        y -- y paste location (default 0)
+        refresh -- blank Image after refresh (default True)
+        mode -- paste mode [Image.paste()] (default "fill")
+        name -- name (default "Child")
+        """
+        x = kwargs.get('x', 0)
+        y = kwargs.get('y', 0)
+        refresh = kwargs.get('refresh', False)
+        mode = kwargs.get('mode', 'fill')
+        if self.check_type(element):
+            if type(position) == str:
+                for i, child in enumerate(self.__childs):
+                    if position in child[5]:
+                        self.__childs.insert(i, element)
+                        return True
+            elif type(position) == int:
+                self.__childs.insert(position, element)
+                return True
+
+        return False
+
+
+
+
+    def remove(self, *names):
+        """Delete one or more childs by their name
+        Returns True if a child was deleted otherwise False
+        """
+        deleted = False
+        for name in names:
+            for child in self.__childs:
+                if name in child[5]:
+                    self.__childs.remove(child)
+                    deleted = True
+        return deleted
+
+    def remove_id(self, id_):
         """Delete a child by his id"""
         if id_ <= len(self.__childs) - 1:
             msg(self.__childs.pop(id_)[5], 0, "Removed", level=2)

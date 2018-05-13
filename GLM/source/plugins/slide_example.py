@@ -7,7 +7,7 @@ class Plugin(PluginBase):
         super().__init__(start, *args)
 
     def _plugin_info(self):
-        self.version = "0.10.0"
+        self.version = "0.11.0"
         self.data_dir = "slide_example"
         self.name = "Slide example"
         self.author = "Infected"
@@ -21,7 +21,7 @@ class Plugin(PluginBase):
         self.register('slide_text', self.text.edit)
         self.screen.set_fps(25)
         self.screen.add(
-            self.slide, x=0, y=5, refresh=True, mode="fill", name=""
+            self.slide, 'slide', x=0, y=5, refresh=True, mode="fill"
             )
 
     def _event_loop(self, event):

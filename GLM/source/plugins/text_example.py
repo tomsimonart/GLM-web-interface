@@ -9,7 +9,7 @@ class Plugin(PluginBase):
 
     def _plugin_info(self):
         self.data_dir = "text_example"
-        self.version = "0.10.0"
+        self.version = "0.11.0"
         self.name = "Example"
         self.author = "Infected"
 
@@ -27,8 +27,8 @@ class Plugin(PluginBase):
 
         self.screen.set_fps(5)
         self.screen.add(self.frame)
-        self.screen.add(self.line_0, x=3, y=2, mode="invert")
-        self.screen.add(self.line_1, x=3, y=9, mode="invert")
+        self.screen.add(self.line_0, 'line_0', x=3, y=2, mode="invert")
+        self.screen.add(self.line_1, 'line_1', x=3, y=9, mode="invert")
 
         self.register('first_line', self.line_0.edit)
         self.register('second_line', self.line_1.edit)
