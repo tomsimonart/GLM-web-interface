@@ -38,6 +38,7 @@ class Screen:
             fps=0,
             tty='/dev/ttyACM0'):
 
+        self._types = ["image.Image", "text.Text", "slide.Slide"]
         self.set_fps(fps)
         self.image = Image(width=width, height=height)
         self.streamer = Stream(matrix=matrix, tty=tty)
@@ -45,6 +46,17 @@ class Screen:
         self.childs = []
         if guishow:
             self.show_gui()
+
+    def check_type(self, element):
+        """Checks if the element has a valid type to be added to screen
+        """
+        for type_ in self._types:
+            element_type = "<class '" + __package__ + '.' + type_ + "'>"
+            if str(type(element)) == element_type:
+                return True
+        msg("Wrong type", 2, "Screen.check_type", type(element), level=0)
+        return False
+
 
     def set_fps(self, fps):
         if fps > 0:
@@ -64,20 +76,10 @@ class Screen:
         mode -- paste mode [Image.paste()] (default "fill")
         name -- name (default "Child")
         """
-        if str(type(element)) == "<class '" + __package__ + ".slide.Slide'>":
-            self.childs.append((element.view, x, y, refresh, mode, name))
-        elif str(type(element)) == "<class '" + __package__ + ".text.Text'>":
-            self.childs.append((element, x, y, refresh, mode, name))
-        elif str(type(element)) == "<class '" + __package__ + ".image.Image'>":
-            self.childs.append((element, x, y, refresh, mode, name))
-        else:
-            msg(
-            "not a valid element",
-            2,
-            "Screen.add()",
-            type(element),
-            level=0
-            )
+        if self.check_type(element):
+            self.childs.append(
+                (element.screen_data(), x, y, refresh, mode, name)
+                )
 
     def remove(self, id_):
         """Delete a child by his id"""
