@@ -5,9 +5,12 @@ from ..libs.slide import Slide
 class Plugin(PluginBase):
     def __init__(self, start, *args):
         super().__init__(start, *args)
+
+    def _plugin_info(self):
+        self.version = "0.10.0"
+        self.data_dir = "slide_example"
         self.name = "Slide example"
         self.author = "Infected"
-        self.version = "0.9.0"
 
     def _make_layout(self):
         self.template = """\
