@@ -198,3 +198,8 @@ class Image:
 
         else:
             msg("no such paste mode", 2, "Image.paste()", mode)
+
+    def screen_data(self):
+        """Used by Screen to access the image that needs to be added
+        """
+        return self

@@ -1,3 +1,18 @@
+## 0.11.0
+* Screen insert method
+* New Screen.add arguments order
+* Screen removes by name instead of id's
+
+* Example
+    ```python
+    screen.add(Image, "Name", **kwargs)
+    screen.insert("Name", OtherImage, "OtherName", **kwargs)
+    screen.remove("Name", "OtherName")
+    ```
+
+* Minimal plugin:
+> Same as 0.10.0
+
 ## 0.10.0
 * Added a standalone launcher for this project __./lmpm__
 * Added an image loader

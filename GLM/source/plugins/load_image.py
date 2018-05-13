@@ -6,14 +6,14 @@ class Plugin(PluginBase):
 
     def _plugin_info(self):
         self.data_dir = "load_image"
+        self.version = "0.11.0"
         self.name = "Image Loader"
         self.author = "Infected"
-        self.version = "0.10.0"
 
     def _make_layout(self):
         self.background = self.load_image('background')
         self.screen.set_fps(5)
-        self.screen.add(self.background)
+        self.screen.add(self.background, 'background')
 
     def _event_loop(self, event):
         pass

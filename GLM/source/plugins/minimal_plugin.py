@@ -7,7 +7,7 @@ class Plugin(PluginBase):
     def _plugin_info(self):
         """Required informations about the plugin
         """
-        self.version = "0.10.0"
+        self.version = "0.11.0"
         self.data_dir = "minimal"
 
     def _make_layout(self):

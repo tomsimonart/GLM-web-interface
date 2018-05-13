@@ -9,7 +9,7 @@ class Plugin(PluginBase):
 
     def _plugin_info(self):
         self.data_dir = "clock"
-        self.version = "0.10.0"
+        self.version = "0.11.0"
         self.name = "Clock"
         self.author = "Infected"
 
@@ -19,7 +19,7 @@ class Plugin(PluginBase):
         self.system_time = datetime.datetime.now()
         self.time = Text(self.get_time(), font='fontbignum')
         self.screen.set_fps(6)
-        self.screen.add(self.time, 2, 3, True)
+        self.screen.add(self.time, "time", x=2, y=3, refresh=True)
 
     def _event_loop(self, event):
         pass

@@ -7,7 +7,7 @@ class Plugin(PluginBase):
 
     def _plugin_info(self):
         self.data_dir = "failsafe"
-        self.version = "0.10.0"
+        self.version = "0.11.0"
         self.name = "Failsafe"
         self.author = "Infected"
 
@@ -16,7 +16,7 @@ class Plugin(PluginBase):
         {% <h1 style='color:white;'>Error:</h1> %}
         {{ error;label;Failed to load plugin }}"""
         self.error = Text('$> error !')
-        self.screen.add(self.error, refresh=False, x=2, y=5)
+        self.screen.add(self.error, 'error', refresh=False, x=2, y=5)
 
     def _start(self):
         pass

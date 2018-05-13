@@ -7,7 +7,7 @@ from .screen import Screen
 from .templater import Templater
 from .imageloader import load_image
 
-VERSION = "0.10.0"
+VERSION = "0.11.0"
 
 class PluginBase(ABC):
     def __init__(self, start, *args):

@@ -71,3 +71,8 @@ class Slide:
 
     def shift_down(self, step=1):
         self.y_pos += step
+
+    def screen_data(self):
+        """Used by Screen to access the image that needs to be added
+        """
+        return self.view
