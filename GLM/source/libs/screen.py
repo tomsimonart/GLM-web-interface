@@ -68,6 +68,7 @@ class Screen:
     def add(self, element, name="default", **kwargs):
         """
         Add a new Image to the childs.
+        Returns true for success
 
         Keyword arguments:
         element -- Image
@@ -85,6 +86,8 @@ class Screen:
             self.__childs.append(
                 (element.screen_data(), x, y, refresh, mode, name)
                 )
+            return True
+        return False
 
     def insert(self, position, element, name="default", **kwargs):
         """Inserts a child to the screen before 'position'
@@ -108,12 +111,47 @@ class Screen:
             if type(position) == str:
                 for i, child in enumerate(self.__childs):
                     if position in child[5]:
-                        self.__childs.insert(i, element)
+                        self.__childs.insert(i, (
+                            element.screen_data(), x, y, refresh, mode, name)
+                            )
                         return True
             elif type(position) == int:
-                self.__childs.insert(position, element)
+                self.__childs.insert(position, (
+                    element.screen_data(), x, y, refresh, mode, name)
+                    )
                 return True
+        return False
 
+    def replace(self, position, element, name='default', **kwargs):
+        """Replaces a child at index 'position'
+        Returns True for success
+
+        Keyword arguments:
+        position -- Index or name to insert before
+        element -- Image
+        x -- x paste location (default 0)
+        y -- y paste location (default 0)
+        refresh -- blank Image after refresh (default True)
+        mode -- paste mode [Image.paste()] (default "fill")
+        name -- name (default "Child")
+        """
+        x = kwargs.get('x', 0)
+        y = kwargs.get('y', 0)
+        refresh = kwargs.get('refresh', False)
+        mode = kwargs.get('mode', 'fill')
+        if self.check_type(element):
+            if type(position) == str:
+                for i, child in enumerate(self.__childs):
+                    if position in child[5]:
+                        self.__childs[i] = (
+                            element.screen_data(), x, y, refresh, mode, name
+                            )
+                        return True
+            elif type(position) == int:
+                self.__childs[position] = (
+                    element.screen_data(), x, y, refresh, mode, name
+                    )
+                return True
         return False
 
     def remove(self, *names):
@@ -141,7 +179,6 @@ class Screen:
                 id_,
                 level=0
                 )
-
 
     def remove_all(self):
         """Remove all childs"""
@@ -197,7 +234,12 @@ class Screen:
         return string
 
     def __getitem__(self, index):
-        return self.__childs[index]
+        if type(index) == int:
+            return self.__childs[index]
+        elif type(index) == str:
+            for child in self.__childs:
+                if index == child[5]:
+                    return child
 
     def show_gui(self):
         """
