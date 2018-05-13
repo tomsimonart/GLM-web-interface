@@ -52,7 +52,10 @@ def plugin_checker(main_plugin, start, *args):
         return None
 
     # Launch plugin (without start)
-    loaded_plugin = main_plugin.Plugin(start, *args)
+    try:
+        loaded_plugin = main_plugin.Plugin(start, *args)
+    except TypeError:
+        start_failsafe(*args)
 
     if isinstance(loaded_plugin, PluginBase):
         msg('OK', 0, 'plugin_checker', 'PluginBase', level=2, slevel='check')
@@ -85,6 +88,13 @@ def plugin_checker(main_plugin, start, *args):
         msg('FATAL', 3, 'plugin_checker', 'No version', level=0, slevel='check')
         return None
 
+    if hasattr(loaded_plugin, '_plugin_info'): # Check if data_dir exists
+        msg('OK', 0, 'plugin_checker', '_plugin_info', level=2, slevel='check')
+    else:
+        e_reason = 'No _plugin_info'
+        msg('ERROR', 2, 'plugin_checker', e_reason, level=0, slevel='check')
+        return None
+
     if hasattr(loaded_plugin, "_make_layout"): # Check if make layout exists
         msg('OK', 0, 'plugin_checker', '_make_layout', level=2, slevel='check')
     else:
@@ -108,16 +118,23 @@ def plugin_checker(main_plugin, start, *args):
     return loaded_plugin
 
 
+def start_failsafe(*args):
+    msg('ERROR', 2, 'plugin_loader', 'failsafe plugin activation')
+    print_plugin_info(failsafe.Plugin(False, *args))
+    loaded_plugin = failsafe.Plugin(True, *args)
+
+
 def plugin_loader(plugin, start, *args):
     main_plugin = import_plugin(PLUGIN_PACKAGE + "." + plugin.replace(".py", ''))
     loaded_plugin = plugin_checker(main_plugin, False, *args)
     if loaded_plugin:
         print_plugin_info(loaded_plugin)
-        loaded_plugin = main_plugin.Plugin(True, *args)
+        try:
+            loaded_plugin = main_plugin.Plugin(True, *args)
+        except TypeError:
+            start_failsafe(*args)
     else:
-        msg('ERROR', 2, 'plugin_loader', 'failsafe plugin activation')
-        print_plugin_info(failsafe.Plugin(False, *args))
-        loaded_plugin = failsafe.Plugin(True, *args)
+        start_failsafe(*args)
 
 
 def print_plugin_info(plugin):

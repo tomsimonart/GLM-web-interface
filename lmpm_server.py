@@ -14,6 +14,7 @@ def init():
     server.PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
     server.plugin = None # Current plugin process
     server.plugin_id = -1 # Current plugin ID
+    server.plugin_pid = 0 # PID of the process
     server.plugin_end = multiprocessing.Event() # End of plugin event
     server.plugin_events = multiprocessing.Queue() # Event queue
     server.plugin_state = 0 # State of the plugin's webview
@@ -35,6 +36,7 @@ def load_plugin(state, id_):
     if server.plugin is not None:
         server.plugin_end.set()
         server.plugin.join()
+        msg("Stop", 2, "Plugin", server.plugin_id, server.plugin_pid, level=1)
     server.plugin_end.clear()
     server.plugin_id = id_
     server.plugin = multiprocessing.Process(
@@ -52,6 +54,8 @@ def load_plugin(state, id_):
             )
         )
     server.plugin.start()
+    server.plugin_pid = server.plugin.pid
+    msg("Start", 0, "Plugin", server.plugin_id, server.plugin_pid, level=1)
     return state + 1, id_
 
 @server.handle_message("LOADWEBVIEW")
@@ -78,7 +82,15 @@ def send_event(state, event):
         server.plugin_events.put({"EVENT": event})
     return state + 1, 0
 
-# WEB SERVER METHODS
+def close_server():
+    if server.plugin:
+        server.plugin_end.set()
+        server.plugin.join()
+        msg("Stop", 2, "Plugin", server.plugin_id, server.plugin_pid, level=1)
+        server.close()
 
 if __name__ == '__main__':
-    server.server_forever()
+    try:
+        server.server_forever()
+    finally:
+        close_server()

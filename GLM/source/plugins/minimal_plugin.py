@@ -3,7 +3,8 @@ from ..libs.pluginbase import PluginBase
 class Plugin(PluginBase):
     def __init__(self, start, *args):
         super().__init__(start, *args)
-        self.version = "0.9.0"
+        self.version = "0.10.0"
+        self.data_dir = "minimal"
 
     def _make_layout(self):
         """Here is where the ingredients to bake a

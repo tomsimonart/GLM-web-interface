@@ -2,11 +2,12 @@
 # By Infected
 # 2016
 
-from os import path
+import os
+import sys
 
 def check_verbosity():
-    dir = path.dirname(__file__)
-    abs_path = path.join(dir, '../../verbosity')
+    dir = os.path.dirname(__file__)
+    abs_path = os.path.join(dir, '../../verbosity')
     try:
         with open(abs_path, 'r') as verbosity:
             VERBOSITY = int(verbosity.readline()) # Verbosity level
@@ -104,29 +105,46 @@ def msg(message, priority=0, function=None, *data, **verbose):
             # status
             mode = STATUS
             message = color(message, 'GREEN')
+            print(mode, end=" ")
         if priority == 1:
             # Warning
             mode = WARNING
             message = color(message, 'YELLOW')
+            print(mode, end=" ")
         if priority == 2:
             # Error
             mode = ERROR
             message = color(message, 'RED')
+            print(mode, end=" ", file=sys.stderr)
         if priority >= 3:
             # Fatal
             mode = FATAL
             message = color(message, 'RED', False, None, 'invert')
+            print(mode, end=" ", file=sys.stderr)
 
-        print(mode, end=" ")
 
         if function is not None:
             function_color = 'BLUE'
             function += ": "
-            print(color(function, function_color), end="")
+            if priority >= 2:
+                print(color(function, function_color), end="", file=sys.stderr)
+            else:
+                print(color(function, function_color), end="")
 
-        print(message, end="")
-        if data is not ():
-            print("\t" + color("|", 'YELLOW'), end="")
-            print(color(" " + str(list(data)), "MAGENTA"))
+        if priority >= 2:
+            print(message, end="", file=sys.stderr)
         else:
-            print()
+            print(message, end="")
+
+        if data is not ():
+            if priority >= 2:
+                print("\t" + color("|", 'YELLOW'), end="", file=sys.stderr)
+                print(color(" " + str(list(data)), "MAGENTA"), file=sys.stderr)
+            else:
+                print("\t" + color("|", 'YELLOW'), end="")
+                print(color(" " + str(list(data)), "MAGENTA"))
+        else:
+            if priority >= 2:
+                print(file=sys.stderr)
+            else:
+                print()

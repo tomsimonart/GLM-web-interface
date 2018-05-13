@@ -1,21 +1,24 @@
+import os
+from abc import ABC, abstractmethod
 from queue import Queue
 from time import sleep
 from .rainbow import msg
 from .screen import Screen
 from .templater import Templater
+from .imageloader import load_image
 
 VERSION = "0.10.0"
 
-class PluginBase:
+class PluginBase(ABC):
     def __init__(self, start, *args):
-        self.name = "No name"
-        self.author = "No author"
+        self.__plugin_info()
         if start:
             self.template = "" # Template to render
             self.__event_queue = Queue()
             self.__state = 1
             self.__rendered_data = None
             self.__pairs = {}
+            self.__path = ('GLM/plugindata/')
 
             # Args
             self.__data = args[0] # data_send
@@ -33,8 +36,19 @@ class PluginBase:
             self.__make_layout()
             self.__start()
 
-    def get_rendered_data(self):
-        return self.__rendered_data
+    @abstractmethod
+    def _plugin_info(self):
+        self.data_dir = "./"
+        self.name = "No Name"
+        self.author = "No author"
+        self.version = "0.0.0"
+
+    def __plugin_info(self):
+        self._plugin_info()
+
+    @abstractmethod
+    def _make_layout(self):
+        pass
 
     def __make_layout(self):
         self._make_layout()
@@ -42,11 +56,19 @@ class PluginBase:
         self.templater.parse()
         self.__rendered_data = self.templater.render()
 
+    @abstractmethod
+    def _start(self):
+        pass
+
     def __start(self):
         while not self.__end.is_set() or not self.__events.empty():
             self.__event_loop()
             self._start()
             self.screen.refresh()
+
+    @abstractmethod
+    def _event_loop(self):
+        pass
 
     def __event_loop(self):
         self.__get_events()
@@ -67,6 +89,9 @@ class PluginBase:
         while not self.__events.empty():
             self.__event_queue.put(self.__events.get())
 
+    def get_rendered_data(self):
+        return self.__rendered_data
+
     def inc_state(self):
         self.__state += 1
 
@@ -76,9 +101,19 @@ class PluginBase:
     def unregister(self, field):
         del self.__pairs[field]
 
-    def edit(self, field, value):
+    def edit(self, field, value=None, *args, **kwargs):
         if field in self.__pairs.keys():
-            self.__pairs[field](value)
-            self.templater.edit_value(field, value)
+            self.__pairs[field](*args, **kwargs)
+            if value:
+                self.templater.edit_value(field, value)
             self.__rendered_data = self.templater.render()
             self.inc_state()
+
+    def load_image(self, path):
+        image_name = path + '.pbm'
+        image_path = os.path.join(self.__path, self.data_dir, image_name)
+        return load_image(image_path)
+
+    def load_template(self, path):
+        template_name = path + '.template'
+        return None # TODO

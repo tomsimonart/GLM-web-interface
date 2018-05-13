@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import uuid
 import socket
 import marshal
@@ -106,22 +107,25 @@ class Server(object):
         self._selector.register(conn, selectors.EVENT_READ, self._on_message)
 
     def _on_message(self, conn, mask):
-        message = conn.recv(self._buffsize)
-        msg("Message", 0, "Server", str(marshal.loads(message)), level=3)
-        if message:
-            mid, name, args, kwargs = marshal.loads(message)
-            if name in self._message_handlers:
-                new_state, response = self._message_handlers[name](
-                    self._state, *args, **kwargs
-                    )
-                self._state = new_state
-                conn.send(marshal.dumps((mid, response)))
+        try:
+            message = conn.recv(self._buffsize)
+            msg("Message", 0, "Server", str(marshal.loads(message)), level=3)
+            if message:
+                mid, name, args, kwargs = marshal.loads(message)
+                if name in self._message_handlers:
+                    new_state, response = self._message_handlers[name](
+                        self._state, *args, **kwargs
+                        )
+                    self._state = new_state
+                    conn.send(marshal.dumps((mid, response)))
 
-        else:
-            msg("Disconnected", 2, "Server", conn, level=3)
-            self._selector.unregister(conn)
-            conn.close()
-
+            else:
+                msg("Disconnected", 2, "Server", conn, level=3)
+                self._selector.unregister(conn)
+                conn.close()
+        except EOFError as e:
+            msg("EOF", 3, "Server", e, level=0)
+            sys.exit(0)
 
     def close(self):
         msg("Closing", 2, "Server", level=3)
@@ -179,12 +183,3 @@ class Client(threading.Thread):
                             conn.close()
         finally:
             msg("Closing", 3, "Client", level=3)
-
-
-if __name__ == "__main__":
-    try:
-        server = Server()
-        server.server_forever()
-    except KeyboardInterrupt:
-        server.close()
-        print()

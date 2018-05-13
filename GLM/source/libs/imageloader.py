@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+
+import sys
+from .image import Image
+from .rainbow import msg
+
+VERBOSE = False
+
+def match_size(f):
+    """
+    match_size(file) -> right sized bitmap from the pbm file
+    """
+    line = f.readline().replace('\n','')
+    if line != 'P1': # PBM signature check
+        msg('Wrong format', 2, "imageloader", line, level=0)
+
+    check = True
+
+    while check:
+        line = f.readline().replace('\n','')
+        if line != '':
+            if line.lstrip()[0] == '#': # PBM author comments
+                msg('Info', 0, 'imageloader.match_size', line, level=3)
+            else:
+                check = False
+                dimension = list(map(int, line.split()))
+                return arrange(f.read(), dimension)
+
+
+def arrange(lines, dimension):
+    """
+    arrange(lines, (dimension)) -> turns raw data lines into
+    a matrix of size dimension[1] * dimension[0] <-> (height * width)
+    returns a string with new lines as delimiteers
+    """
+    bitmap = ['']
+    count = 0
+    lines = lines.replace('\n', '')
+    for i in range(0, dimension[1]):
+        for j in range(0, dimension[0]):
+            bitmap[i] += lines[count]
+            count += 1
+        bitmap[i] += '\n'
+        bitmap.append('')
+    if VERBOSE:
+        for i in bitmap:
+            print(i, end='', file=sys.stderr)
+
+    return ''.join(bitmap)
+
+def clean_pbm(file_in, file_out):
+    """
+    clean_pbm(file_in, file_out)
+    file_in -> good shit >> file_out
+    calls match_size(file_in)
+    """
+    try:
+        fi = open(file_in, 'r')
+    except FileNotFoundError:
+        print('Error: file not found')
+    else:
+        fo = open(file_out, 'w')
+        fo.write(match_size(fi))
+        fi.close()
+        fo.close()
+
+def load_image(file_in):
+    """Loads a pbm file and return an Image object
+    """
+    with open(file_in, 'r') as file:
+        raw_image = match_size(file)
+        image = Image(pixmap=raw_to_pixmap(raw_image))
+        return image
+
+def raw_to_pixmap(data):
+    pixmap = [list(map(int, pl)) for pl in data.strip('\n').split('\n')]
+    return pixmap
+
+def convert_to_pbm(data, file_name, dimension):
+    """
+    convert_to_pbm(data, file_name, dimension) -> .pbm file
+    data must be a bitmap string, file_name the
+    future file (without extension) and dimension a tuple (width, height)
+    """
+    fo = open(file_name+'.pbm', 'w')
+    fo.write('P1\n')
+    fo.write('# PBMtools v1.2 by Infected and Minorias\n')
+    fo.write(str(dimension[0]) + ' ' + str(dimension[1]) + '\n')
+    for i in data:
+        fo.write(i)
+    fo.write('\n')
+    fo.close()

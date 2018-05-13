@@ -58,8 +58,8 @@ class Text(Image):
 
     def __init__(self, text='', spacing=1, font=None):
         super().__init__()
-        self.edit(text, spacing, font)
         self.font_selection = font
+        self.edit(text, spacing, font)
 
     def generate(self):
         """

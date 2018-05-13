@@ -1,0 +1,12 @@
+#!/bin/bash
+# set -o xtrace
+
+source launch.sh
+./lmpm_server.py $@ &
+P1=$!
+flask run >flask.log 2>&1
+P2=$!
+
+trap "kill -SIGINT $P1; sleep 1; kill -SIGINT $P2;" SIGINT
+
+wait $P1 $P2

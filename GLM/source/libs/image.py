@@ -57,13 +57,10 @@ class Image:
                     for j in i:
                         if j != 0 and j != 1:
                             msg("pixmap wrong data !(1|0)", 3, "Image", j, i)
-                            exit()
             else:
                 msg("pixmap is not a matrix", 3, "Image", type(pixmap[0]))
-                exit()
         else:
             msg("pixmap is not a matrix", 3, "Image", type(pixmap))
-            exit()
 
     def auto_size(self):
         """Auto fill width and height"""
