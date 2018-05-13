@@ -5,7 +5,7 @@ class Plugin(PluginBase):
         super().__init__(start, *args)
 
     def _plugin_info(self):
-        """Here are required informations about the plugin
+        """Required informations about the plugin
         """
         self.version = "0.10.0"
         self.data_dir = "minimal"

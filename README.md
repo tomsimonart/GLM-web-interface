@@ -19,28 +19,21 @@
 
 ## Starting
 
-* Start the server :
+* Start LMPM :
 
-    >```./lmpm_server```
+    >```./lmpm```
 
     the available arguments can be found with :
 
-    >```./lmpm_server -h```
+    >```./lmpm -h```
 
     some examples :
 
-    >```./lmpm_server -vvv```
+    >```./lmpm -vvv```
 
-    >```./lmpm_server -s```
+    >```./lmpm -s```
 
-    >```./lmpm_server -V check -V info -m```
-
-
-* Start flask (when the server is running only)
-
-    >```source launch.sh```
-
-    >```flask run```
+    >```./lmpm -V check -V info -m```
 
 ## Web
 * Url should be

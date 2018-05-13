@@ -1,3 +1,35 @@
+## 0.10.0
+* Added a standalone launcher for this project __./lmpm__
+* Added an image loader
+* PluginBase is now an __abstract class__
+* Plugins need a __\_plugin_info__ method and add the information there instead of in the constructor
+* __self.data_dir__ is now required to be in \_plugin_info and represents the directory where data like .pbm images are saved for a plugin (_LMPM/GLM/plugindata/your plugin data dir_)
+* some bugs fixed on the failsafe plugin and some other places
+
+* minimal plugin:
+    ```python
+    from ..libs.pluginbase import PluginBase
+
+    class Plugin(PluginBase):
+        def __init__(self, start, *args):
+            super().__init__(start, *args)
+
+        def _plugin_info(self):
+            """Required informations about the plugin
+            """
+            self.version = "0.10.0"
+            self.data_dir = "minimal"
+
+        def _make_layout(self):
+            pass
+
+        def _event_loop(self, event):
+            pass
+
+        def _start(self):
+            pass
+    ```
+
 ## 0.9.0
 * Plugins now inherit from __PluginBase__, it's now pretty simple to make plugins
 
