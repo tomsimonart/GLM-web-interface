@@ -3,6 +3,10 @@ from ..libs.pluginbase import PluginBase
 class Plugin(PluginBase):
     def __init__(self, start, *args):
         super().__init__(start, *args)
+
+    def _plugin_info(self):
+        """Here are required informations about the plugin
+        """
         self.version = "0.10.0"
         self.data_dir = "minimal"
 

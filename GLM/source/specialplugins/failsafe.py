@@ -6,9 +6,10 @@ class Plugin(PluginBase):
         super().__init__(start, *args)
 
     def _plugin_info(self):
+        self.data_dir = "failsafe"
+        self.version = "0.10.0"
         self.name = "Failsafe"
         self.author = "Infected"
-        self.version = "0.10.0"
 
     def _make_layout(self):
         self.template = """\

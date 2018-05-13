@@ -6,9 +6,12 @@ from ..libs.pluginbase import PluginBase
 class Plugin(PluginBase):
     def __init__(self, start, *args):
         super().__init__(start, *args)
+
+    def _plugin_info(self):
+        self.data_dir = "clock"
+        self.version = "0.10.0"
         self.name = "Clock"
         self.author = "Infected"
-        self.version = "0.9.0"
 
     def _make_layout(self):
         self.template = """\
