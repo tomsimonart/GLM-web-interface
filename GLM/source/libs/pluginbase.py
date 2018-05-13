@@ -101,11 +101,10 @@ class PluginBase(ABC):
     def unregister(self, field):
         del self.__pairs[field]
 
-    def edit(self, field, value=None, *args, **kwargs):
+    def edit(self, field, value):
         if field in self.__pairs.keys():
-            self.__pairs[field](*args, **kwargs)
-            if value:
-                self.templater.edit_value(field, value)
+            self.__pairs[field](value)
+            self.templater.edit_value(field, value)
             self.__rendered_data = self.templater.render()
             self.inc_state()
 
@@ -113,7 +112,3 @@ class PluginBase(ABC):
         image_name = path + '.pbm'
         image_path = os.path.join(self.__path, self.data_dir, image_name)
         return load_image(image_path)
-
-    def load_template(self, path):
-        template_name = path + '.template'
-        return None # TODO
