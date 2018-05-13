@@ -44,7 +44,7 @@ class Stream:
 
     def __bytes__(self):
         byte_list = [
-            int(self.data[i:i+8], 2)for i in range(0, self.length-1, 8)]
+            int(self.data[i:i+8], 2) for i in range(0, self.length-1, 8)]
         return bytes(byte_list)
 
     def set_data(self, data):

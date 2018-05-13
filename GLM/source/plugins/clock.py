@@ -18,7 +18,7 @@ class Plugin(PluginBase):
         {{ title;label;Clock }}"""
         self.system_time = datetime.datetime.now()
         self.time = Text(self.get_time(), font='fontbignum')
-        self.screen.set_fps(6)
+        self.screen.set_fps(1)
         self.screen.add(self.time, 2, 3, True)
 
     def _event_loop(self, event):

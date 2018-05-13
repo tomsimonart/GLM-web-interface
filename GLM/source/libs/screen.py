@@ -3,7 +3,7 @@ from .image import Image
 from .rainbow import color, msg
 from .guiviewer import GuiViewer
 from os import system
-from time import sleep
+from time import sleep, process_time
 from sys import argv
 from threading import Thread
 
@@ -35,15 +35,17 @@ class Screen:
             matrix=True,
             show=False,
             guishow=False,
-            fps=0,
+            fps=30,
             tty='/dev/ttyACM0'):
 
-        self._types = ["image.Image", "text.Text", "slide.Slide"]
         self.set_fps(fps)
-        self.image = Image(width=width, height=height)
-        self.streamer = Stream(matrix=matrix, tty=tty)
         self.show = show
-        self.childs = []
+        self._types = ["image.Image", "text.Text", "slide.Slide"]
+        self._image = Image(width=width, height=height)
+        self.__streamer = Stream(matrix=matrix, tty=tty)
+        self.__childs = []
+        self.__prev_fps = 0
+
         if guishow:
             self.show_gui()
 
@@ -60,9 +62,9 @@ class Screen:
 
     def set_fps(self, fps):
         if fps > 0:
-            self.fps = 1 / fps
+            self._fps = 1 / fps
         else:
-            self.fps = 0
+            self._fps = 0
 
     def add(self, element, x=0, y=0, refresh=False, mode="fill", name="Child"):
         """
@@ -77,20 +79,20 @@ class Screen:
         name -- name (default "Child")
         """
         if self.check_type(element):
-            self.childs.append(
+            self.__childs.append(
                 (element.screen_data(), x, y, refresh, mode, name)
                 )
 
     def remove(self, id_):
         """Delete a child by his id"""
-        if id_ <= len(self.childs) - 1:
-            msg(self.childs.pop(id_)[5], 0, "Removed", level=2)
+        if id_ <= len(self.__childs) - 1:
+            msg(self.__childs.pop(id_)[5], 0, "Removed", level=2)
         else:
             msg(
                 "no such child",
                 2,
                 "Screen.remove()",
-                len(self.childs),
+                len(self.__childs),
                 id_,
                 level=0
                 )
@@ -98,35 +100,43 @@ class Screen:
 
     def remove_all(self):
         """Remove all childs"""
-        number_of_childs = len(self.childs)
-        self.childs = []
+        number_of_childs = len(self.__childs)
+        self.__childs = []
         msg("Removed %i childs" % number_of_childs, 1, level=2)
 
+
+    def sleep_fps(self):
+        """Rather precise (+0.00000x) fps waiter
+        """
+        while (self.__prev_fps + self._fps) > process_time():
+            pass
+        self.__prev_fps = process_time()
 
     def refresh(self):
         """
         Flatten all childs into one Image and send it to the streamer
         and/or print it in the terminal.
         """
-        self.image.blank()
-        for child in self.childs:
-            self.image.paste(child[0], x=child[1], y=child[2], mode=child[4])
+        self.sleep_fps()
+
+        self._image.blank()
+        for child in self.__childs:
+            self._image.paste(child[0], x=child[1], y=child[2], mode=child[4])
 
             # Refresh
             if child[3]:
                 child[0].blank()
 
-        self.streamer.set_data(self.image)
-        self.streamer.send_to_serial()
+        self.__streamer.set_data(self._image)
+        self.__streamer.send_to_serial()
         if self.show:
             system('clear')
-            print(self.streamer)
-        sleep(self.fps)
+            print(self.__streamer)
 
     def __str__(self):
-        count = len(self.childs) - 1
+        count = len(self.__childs) - 1
         string = color("Screen", "green") + "\n"
-        for n, child in enumerate(self.childs):
+        for n, child in enumerate(self.__childs):
             if n < count:
                 string += color('├─', 'blue')
             else:
@@ -143,7 +153,7 @@ class Screen:
         return string
 
     def __getitem__(self, index):
-        return self.childs[index]
+        return self.__childs[index]
 
     def show_gui(self):
         """
@@ -151,6 +161,6 @@ class Screen:
         from within itself by a function that is run at the end of each
         turn of the tkinter mainloop.
         """
-        gui_thread = Thread(target=lambda: GuiViewer(self.image))
+        gui_thread = Thread(target=lambda: GuiViewer(self._image))
         gui_thread.daemon = True
         gui_thread.start()
