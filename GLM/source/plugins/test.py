@@ -15,11 +15,15 @@ class Plugin(PluginBase):
     def _make_layout(self):
         self.template = """
         {{ help;label;Press the right arrow on your keyboard }}
+        {{ text;input;to display }}
+        {{ void;input;sample input }}
         {{ right;key;ArrowRight }}
         """
-        self.info = Text('bonjour')
+        self.text = 'to display'
+        self.info = Text(self.text)
         self.screen.set_fps(5)
         self.screen.add(self.info, 'info')
+        self.register('text', self.save_text)
         self.register('right', self.go_right)
 
     def _event_loop(self, event):
@@ -28,5 +32,8 @@ class Plugin(PluginBase):
     def _start(self):
         pass
 
+    def save_text(self, text='no text'):
+        self.text = text
+
     def go_right(self):
-        self.info.edit('went right')
+        self.info.edit(self.text)
