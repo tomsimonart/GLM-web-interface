@@ -8,15 +8,14 @@ class Plugin(PluginBase):
 
     def _plugin_info(self):
         self.version = "0.11.1"
-        self.data_dir = "test"
-        self.name = "Feature testing"
+        self.data_dir = "keyeventexample"
+        self.name = "Key event example"
         self.author = "Infected"
 
     def _make_layout(self):
         self.template = """
-        {{ help;label;Press the right arrow on your keyboard }}
+        {{ help;label;Press the right arrow on your keyboard to refresh the text }}
         {{ text;input;to display }}
-        {{ void;input;sample input }}
         {{ right;key;ArrowRight }}
         """
         self.text = 'to display'
