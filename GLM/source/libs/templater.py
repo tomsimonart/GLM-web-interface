@@ -12,6 +12,7 @@ class Templater():
         self.stags = ('{{', '{%', '{#', '\n')
         self.etags = ('}}', '%}', '#}', '')
         self.elements = {
+            'key': self.add_key,
             'label': self.add_label,
             'button': self.add_button,
             'input': self.add_input,
@@ -31,7 +32,7 @@ class Templater():
                 )
 
     def render(self):
-        html = """<script type="text/javascript">function send_event(e){console.log('sent_event'+e.id);$.post('/plugin/event/',{id:e.id,value:e.value});};</script>""".strip('\n') # AJAX sender
+        html = """<script>occult_list = [];occult_id = [];</script>""" # Reset
         for id_ in self.pre_render:
             html += self.elements[self.id_table[id_][0]](self.id_table[id_], id_)
         msg(html, 0, 'render', level=4, slevel='html')
@@ -118,34 +119,44 @@ class Templater():
             else:
                 cursor = len(self.template)
 
+    def add_key(self, data, id_):
+        """{{ <id>;key;<key string> }}"""
+        if len(data) >= 2:
+            tag = data[0]
+            key_string = data[1]
+            return "<script>occult_id.push('{}');\
+            occult_list.push('{}');</script>".format(id_, key_string)
+
     def add_label(self, data, id_):
-        """{{ label;id;text }}"""
+        """{{ <id>;label;<text> }}"""
         if len(data) >= 2:
             tag = data[0]
             text = data[1]
-        return "<p id='{}'>{}</p>".format(id_, text)
+            return "<p id='{}'>{}</p>".format(id_, text)
 
     def add_button(self, data, id_):
-        """{{ button;id;button_label }}"""
+        """{{ <id>;button;<button_label> }}"""
         if len(data) >= 2:
             tag = data[0]
             label = data[1]
-        return "<button {} id='{}' value='{}'>{}</button>".format(self.get_onclick(), id_, id_, label)
+            return "<button {} id='{}' \
+            value='{}'>{}</button>".format(self.get_onclick(), id_, id_, label)
 
     def add_input(self, data, id_):
-        """{{ input;id;value;type }}"""
+        """{{ <id>;input;<value>;<type>;<typearg>... }}"""
         if len(data) >= 2:
             tag = data[0]
             value = data[1]
-        type_ = 'text'
-        return "<input {} id='{}' value='{}' placeholder='{}' type='{}'>".format(self.get_onchange(), id_, value, value, type_)
+            type_ = 'text'
+            return "<input {} id='{}' value='{}' placeholder='{}' \
+            type='{}'>".format(self.get_onchange(), id_, value, value, type_)
 
     def add_html(self, html_data, id_):
         """{% <some></html> %}"""
         if len(html_data) >= 2:
             tag = html_data[0]
             html = html_data[1]
-        return html
+            return html
 
     def add_line(self, extra, id_):
         """\n"""

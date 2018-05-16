@@ -1,3 +1,19 @@
+    document.addEventListener("keypress", key_press_event, true);
+    occult_list = [];
+    occult_id = [];
+
+    function key_press_event(e){
+        for (var i = 0; i < occult_list.length; i++){
+            if (occult_list[i] == e.key){
+                $.post('/plugin/o_event/',{id:occult_id[i]});
+            }
+        }
+    };
+
+    function send_event(e){
+        $.post('/plugin/v_event/',{id:e.id,value:e.value});
+    };
+
     function select_plugin(e) {
         $.ajax({
             url: '/plugin/' + e.value,
@@ -13,18 +29,18 @@
 
     function focus_webview(webview){
         webview.style["background"] = 'linear-gradient(salmon, #e23e5f)';
-    }
+    };
 
     function unfocus_webview(webview){
         webview.style["background"] = 'linear-gradient(salmon, crimson)';
-    }
+    };
 
 
     function check_active_element(item, index) {
         if (item === document.activeElement){
             no_focus = false;
         }
-    }
+    };
 
     function check_focus() {
         webview = document.getElementById('webview');
@@ -32,19 +48,18 @@
         no_focus = true;
         c.forEach(check_active_element);
         return no_focus
-    }
+    };
 
     function plugin_update() {
         old_update = new_update;
         $('#update').load('/plugin/update/');
         new_update = Number(document.getElementById('update').innerHTML);
-        console.log(old_update + ' ' + new_update);
         if (check_focus()){
             if (old_update < new_update) {
                 $('#webview').load('/plugin/webview');
             }
         }
-    }
+    };
 
     function poll_plugin_update() {
         setTimeout(function(){
