@@ -1,5 +1,6 @@
 from queue import Queue
 from time import process_time
+from ..libs.rainbow import msg
 from ..libs.image import Image
 from ..libs.drawer import Drawer
 from ..libs.pluginbase import PluginBase
@@ -24,31 +25,47 @@ class Plugin(PluginBase):
         {{ left;key;ArrowLeft }}
         {{ right;key;ArrowRight }}
         """
-        self.position = [0, 0]
-        self.front = Image(64, 16)
-        self.front_drawer = Drawer(self.front)
         self.screen.set_fps(30)
-        self.screen.add(self.front, 'front', refresh=True)
         self.register('up', self.go_up)
         self.register('down', self.go_down)
         self.register('left', self.go_left)
         self.register('right', self.go_right)
 
+        # Splash
         self.splash = True
         self.splash_time = 5
         self.start_time = process_time()
+        self.splash = self.load_image('splash')
+        self.loading_bar = Image(11,1)
+        self.screen.add(self.splash, 'splash')
+        self.screen.add(self.loading_bar, 'lb', x=3, y=2, refresh=True)
 
     def _event_loop(self, event):
         pass
 
     def _start(self):
         if self.splash:
-            if (self.start_time + self.splash_time) > process_time():
-
-            else:
+            if (self.start_time + self.splash_time) < process_time():
+                self.screen.remove('splash')
+                self.screen.remove('lb')
                 self.splash = False
+            else:
+                start = self.start_time
+                end = self.start_time + self.splash_time
+                forward = process_time()
+                self.update_loading_bar(start, end, forward)
+
         else:
+            # Start game
             pass
+
+    def update_loading_bar(self, min_, max_, forward):
+        unit = (max_ - min_) / 100
+        done = (min_ + forward)
+        percentage = round(done / unit)
+        x = (percentage // 10)
+        drawer = Drawer(self.loading_bar)
+        drawer.line(0, 0, x, 0)
 
     def go_up(self):
         pass
@@ -80,7 +97,8 @@ class Snake:
 
     def refresh(self):
         self.__game_canvas.blank()
-        if self.__difficulty > 1
+        if self.__difficulty > 1:
+            pass
         self.move()
         return self.__game_canvas
 
