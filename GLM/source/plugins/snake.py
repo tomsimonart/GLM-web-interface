@@ -1,5 +1,6 @@
 from random import randint
 from time import process_time
+from ..libs.rainbow import msg
 from ..libs.text import Text
 from ..libs.image import Image
 from ..libs.drawer import Drawer
@@ -58,8 +59,10 @@ class Plugin(PluginBase):
             pass
 
         else:
-            pass
             # Start game
+            self.snake.refresh()
+            if self.snake.check_lost():
+                self.splash = True
 
     def update_loading_bar(self, min_, max_, forward):
         unit = (max_ - min_) / 100
@@ -102,6 +105,8 @@ class Plugin(PluginBase):
         self.register('left', self.go_left)
         self.register('right', self.go_right)
         self.snake = Snake(default_size=3, difficulty=self.difficulty)
+        self.screen.add(self.snake.get_game_canvas(), 'snake', refresh=True)
+        self.screen.set_fps(5)
 
     def go_right(self):
         self.snake.set_direction(0)
@@ -126,39 +131,55 @@ class Snake:
         self.__size = 3
         self.__foods = []
         self.__food_blink = False
-        self.__body = []
-        self.__position = ()
+        self.__body = [(31, 7)]
         self.__score = 0
         self.__lost = False
         if difficulty > 1:
-            self.__borders = ((1, 1), (14, 62))
+            self.__borders = ((1, 1), (62, 14))
             self.__wall_collision = True
         else:
-            self.__borders = ((0, 0), (15, 63))
+            self.__borders = ((0, 0), (63, 15))
             self.__wall_collision = False
+
+        self.__put_food()
 
     def get_difficulty(self):
         return self.__difficulty
 
     def refresh(self):
-        self.__game_canvas.blank()
-
+        self.__check_collision()
         self.move()
+        self.__eat_food(self.__body[0])
+
+        if self.__wall_collision: # Draw box if collisions are enabled
+            self.__drawer.line(0, 0, 63, 0)
+            self.__drawer.line(0, 0, 0, 15)
+            self.__drawer.line(0, 15, 63, 15)
+            self.__drawer.line(63, 0, 63, 15)
+
+        for body_part in self.__body:
+            self.__drawer.dot(*body_part)
+
+        if self.__food_blink:
+            for food in self.__foods:
+                self.__drawer.dot(*food)
+
+        self.__blink_food()
 
     def __check_collision(self):
         # Check wall collisions
         if self.__wall_collision:
-            if self.__position[0] < self.__borders[0][0]:
+            if self.__body[0][0] < self.__borders[0][0]:
                 self.__lost = True
-            elif self.__position[0] > self.__borders[1][0]:
+            elif self.__body[0][0] > self.__borders[1][0]:
                 self.__lost = True
-            elif self.__position[1] < self.__borders[1][0]:
+            elif self.__body[0][1] < self.__borders[0][1]:
                 self.__lost = True
-            elif self.__position[1] > self.__borders[1][1]:
+            elif self.__body[0][1] > self.__borders[1][1]:
                 self.__lost = True
 
         # Check tail collisions
-        if self.position in self.__body:
+        if self.__body[0] in self.__body[1:]:
             self.__lost = True
 
     def __blink_food(self):
@@ -166,8 +187,11 @@ class Snake:
         return self.__food_blink
 
     def __put_food(self):
-        border_0 = randint(*self.__borders[0])
-        border_1 = randint(*self.__borders[1])
+        border_0 = self.__body[0][0]
+        border_1 = self.__body[0][1]
+        while (border_0, border_1) in self.__body:
+            border_0 = randint(self.__borders[0][0], self.__borders[1][0])
+            border_1 = randint(self.__borders[0][1], self.__borders[1][1])
         if self.__foods.count((border_0, border_1)) == 0:
             self.__foods.append((border_0, border_1))
 
@@ -179,28 +203,32 @@ class Snake:
             self.__put_food()
 
     def check_lost(self):
+        msg(str(self.__lost))
         return self.__lost
 
     def set_direction(self, direction):
         if type(direction) == int and direction in range(4):
-            self.__direction = direction
-            return True
-        return False
+            if direction != ((self.__direction + 2) % 4):
+                self.__direction = direction
 
     def move(self):
-        op = self.__position # Old position
+        op = self.__body[0] # Old position
         # Right
         if self.__direction == 0:
-            self.__position = (op[0] + 1, op[1])
+            np = ((op[0] + 1) % 64, op[1])
         # Down
         if self.__direction == 1:
-            self.__position = (op[0], op[1] + 1)
+            np = (op[0], (op[1] + 1) % 16)
         # Left
         if self.__direction == 2:
-            self.__position = (op[0] - 1, op[1])
+            np = ((op[0] - 1) % 64, op[1])
         # Up
         if self.__direction == 3:
-            self.__position = (op[0], op[1] - 1)
+            np = (op[0], (op[1] - 1) % 16)
+
+        self.__body.insert(0, np)
+        if (len(self.__body)) > self.__size:
+            self.__body.pop()
 
     def get_game_canvas(self):
         return self.__game_canvas
