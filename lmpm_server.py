@@ -74,13 +74,19 @@ def get_state(state):
         server.plugin_state = server.data_recv.recv()
         return state + 1, server.plugin_state
     else:
-        return state + 1, 0
+        return state + 1, True
 
-@server.handle_message("SENDEVENT")
-def send_event(state, event):
+@server.handle_message("V_EVENT")
+def v_event(state, event):
     if server.plugin:
-        server.plugin_events.put({"EVENT": event})
-    return state + 1, 0
+        server.plugin_events.put({"V_EVENT": event})
+    return state + 1, True
+
+@server.handle_message("O_EVENT")
+def o_event(state, event):
+    if server.plugin:
+        server.plugin_events.put({'O_EVENT': event})
+    return state +1, True
 
 def close_server():
     if server.plugin:

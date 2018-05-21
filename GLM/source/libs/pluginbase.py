@@ -79,9 +79,12 @@ class PluginBase(ABC):
                 self.__data.send(self.get_rendered_data())
             elif "GETSTATE" in event:
                 self.__data.send(self.__state)
-            elif "EVENT" in event:
+            elif "V_EVENT" in event:
                 _, (field, value) = event.popitem()
                 self.edit(field, value)
+            elif "O_EVENT" in event:
+                _, field = event.popitem()
+                self.edit(field)
             else:
                 self._event_loop(event)
 
@@ -101,12 +104,17 @@ class PluginBase(ABC):
     def unregister(self, field):
         del self.__pairs[field]
 
-    def edit(self, field, value):
+    def edit(self, field, value=None):
         if field in self.__pairs.keys():
-            self.__pairs[field](value)
-            self.templater.edit_value(field, value)
-            self.__rendered_data = self.templater.render()
-            self.inc_state()
+            if value: # Visible
+                self.__pairs[field](value)
+                self.templater.edit_value(field, value)
+                self.__rendered_data = self.templater.render()
+                self.inc_state()
+            else: # Occult
+                self.__pairs[field]()
+                self.inc_state()
+
 
     def load_image(self, path):
         image_name = path + '.pbm'

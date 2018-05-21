@@ -2,6 +2,7 @@
 
 import glob
 import semver
+import traceback
 import importlib
 if __name__ == "__main__" and __package__ == None:
     from source.libs.rainbow import color, msg
@@ -131,7 +132,9 @@ def plugin_loader(plugin, start, *args):
         print_plugin_info(loaded_plugin)
         try:
             loaded_plugin = main_plugin.Plugin(True, *args)
-        except TypeError:
+        except Exception as e:
+            # traceback.print_exc() # Keep in case there is a plugin error
+            msg(e, 2)
             start_failsafe(*args)
     else:
         start_failsafe(*args)

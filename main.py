@@ -44,14 +44,21 @@ def webview():
     return render_template('webview.html', data=data)
 
 
-@app.route('/plugin/event/', methods=['POST'])
-def event():
-    """Send an event received by the control interface by POST method to
+@app.route('/plugin/v_event/', methods=['POST'])
+def v_event():
+    """Send a visible event received by the control interface by POST method to
     the server
     """
-    client.send_event((request.values['id'], request.values['value']))
+    client.v_event((request.values['id'], request.values['value']))
     return ''
 
+@app.route('/plugin/o_event/', methods=['POST'])
+def o_event():
+    """Send an occult event received by the control interface by POST method to
+    the server
+    """
+    client.o_event(request.values['id'])
+    return ''
 
 @app.route('/plugin/update/')
 def update():

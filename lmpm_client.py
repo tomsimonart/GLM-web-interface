@@ -20,9 +20,11 @@ class MainClient():
     def get_state(self):
         return self.client.call("GETSTATE")
 
-    def send_event(self, event):
-        return self.client.call("SENDEVENT", event)
+    def v_event(self, event):
+        return self.client.call("V_EVENT", event)
 
+    def o_event(self, event):
+        return self.client.call("O_EVENT", event)
 
 class PluginClient():
     def __init__(self, addr):
