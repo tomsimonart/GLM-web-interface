@@ -39,7 +39,7 @@ class Screen:
             tty='/dev/ttyACM0'):
 
         self.set_fps(fps)
-        self.show = show
+        self._show = show
         self._types = ["image.Image", "text.Text", "slide.Slide"]
         self._image = Image(width=width, height=height)
         self.__streamer = Stream(matrix=matrix, tty=tty)
@@ -154,6 +154,17 @@ class Screen:
                 return True
         return False
 
+    def get_child(self, element):
+        """Returns a child by his name or his id
+        """
+        if type(element) == str:
+            for child in self.__childs:
+                if element in child[5]:
+                    return child
+        elif type(element) == int and element in range(len(self.__childs)):
+            return self.__childs[element]
+        return False
+
     def remove(self, *names):
         """Delete one or more childs by their name
         Returns True if a child was deleted otherwise False
@@ -210,7 +221,7 @@ class Screen:
 
         self.__streamer.set_data(self._image)
         self.__streamer.send_to_serial()
-        if self.show:
+        if self._show:
             system('clear')
             print(self.__streamer)
 
