@@ -1,5 +1,6 @@
 from queue import Queue
 from time import process_time
+from ..libs.text import Text
 from ..libs.rainbow import msg
 from ..libs.image import Image
 from ..libs.drawer import Drawer
@@ -18,33 +19,26 @@ class Plugin(PluginBase):
 
     def _make_layout(self):
         self.template = """
-        {{ info;label;Difficulty between 0-5 }}
-        {{ difficulty;input;0 }}
+        {{ label;label;Use up down left right and enter keys }}
+        {{ enter;key;Enter }}
         {{ up;key;ArrowUp }}
         {{ down;key;ArrowDown }}
         {{ left;key;ArrowLeft }}
         {{ right;key;ArrowRight }}
         """
         self.screen.set_fps(30)
-        self.register('up', self.go_up)
-        self.register('down', self.go_down)
-        self.register('left', self.go_left)
-        self.register('right', self.go_right)
 
         # Splash
         self.splash = True
         self.splash_time = 1
         self.start_time = process_time()
         self.splash = self.load_image('splash')
-        self.loading_bar = Image(11,1)
         self.screen.add(self.splash, 'splash')
+        self.loading_bar = Image(11,1)
         self.screen.add(self.loading_bar, 'lb', x=3, y=2, refresh=True)
 
         # Difficulty
-        self.choose_difficulty = True
-
-        # Snake
-        self.snake = Snake()
+        self.choose_difficulty = False
 
     def _event_loop(self, event):
         pass
@@ -52,9 +46,9 @@ class Plugin(PluginBase):
     def _start(self):
         if self.splash:
             if (self.start_time + self.splash_time) < process_time():
-                self.screen.remove('splash')
-                self.screen.remove('lb')
+                self.screen.remove_all()
                 self.splash = False
+                self.start_choose_difficulty()
             else:
                 start = self.start_time
                 end = self.start_time + self.splash_time
@@ -75,6 +69,42 @@ class Plugin(PluginBase):
         x = (percentage // 10)
         drawer = Drawer(self.loading_bar)
         drawer.line(0, 0, x, 0)
+
+    def start_choose_difficulty(self):
+        self.choose_difficulty = True
+        self.difficulty = 0
+        self.ask_difficulty = Text('difficulty:')
+        self.screen.add(self.ask_difficulty, 'ask_difficulty', x=6, y=7)
+        self.difficulty_label = Text(str(self.difficulty + 1))
+        self.screen.add(self.difficulty_label, 'difficulty_label', x=47, y=7)
+        self.register('up', self.difficulty_up)
+        self.register('down', self.difficulty_down)
+        self.register('enter', self.difficulty_select)
+
+    def difficulty_up(self):
+        if (self.difficulty + 1) in range(5):
+            self.difficulty += 1
+            self.difficulty_label.edit(str(self.difficulty + 1))
+
+    def difficulty_down(self):
+        if (self.difficulty - 1) in range(5):
+            self.difficulty -= 1
+            self.difficulty_label.edit(str(self.difficulty + 1))
+
+    def difficulty_select(self):
+        self.choose_difficulty = False
+        self.screen.remove_all()
+        self.unregister('up')
+        self.unregister('down')
+        self.unregister('enter')
+        self.start_game()
+
+    def start_game(self):
+        self.register('up', self.go_up)
+        self.register('down', self.go_down)
+        self.register('left', self.go_left)
+        self.register('right', self.go_right)
+        self.snake = Snake()
 
     def go_right(self):
         self.snake.set_direction(0)
