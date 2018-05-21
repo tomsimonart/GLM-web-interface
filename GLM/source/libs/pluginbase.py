@@ -104,6 +104,9 @@ class PluginBase(ABC):
     def unregister(self, field):
         del self.__pairs[field]
 
+    def unregister_all(self):
+        self.__pairs = {}
+
     def edit(self, field, value=None):
         if field in self.__pairs.keys():
             if value: # Visible
