@@ -1,1 +1,0 @@
-# __all__ = ['clock_plugin']

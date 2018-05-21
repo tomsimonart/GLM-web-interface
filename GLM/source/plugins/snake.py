@@ -33,12 +33,18 @@ class Plugin(PluginBase):
 
         # Splash
         self.splash = True
-        self.splash_time = 5
+        self.splash_time = 1
         self.start_time = process_time()
         self.splash = self.load_image('splash')
         self.loading_bar = Image(11,1)
         self.screen.add(self.splash, 'splash')
         self.screen.add(self.loading_bar, 'lb', x=3, y=2, refresh=True)
+
+        # Difficulty
+        self.choose_difficulty = True
+
+        # Snake
+        self.snake = Snake()
 
     def _event_loop(self, event):
         pass
@@ -55,9 +61,12 @@ class Plugin(PluginBase):
                 forward = process_time()
                 self.update_loading_bar(start, end, forward)
 
-        else:
-            # Start game
+        elif self.choose_difficulty:
             pass
+
+        else:
+            pass
+            # Start game
 
     def update_loading_bar(self, min_, max_, forward):
         unit = (max_ - min_) / 100
@@ -67,20 +76,20 @@ class Plugin(PluginBase):
         drawer = Drawer(self.loading_bar)
         drawer.line(0, 0, x, 0)
 
-    def go_up(self):
-        pass
+    def go_right(self):
+        self.snake.set_direction(0)
 
     def go_down(self):
-        pass
+        self.snake.set_direction(1)
 
     def go_left(self):
-        pass
+        self.snake.set_direction(2)
 
-    def go_right(self):
-        pass
+    def go_up(self):
+        self.snake.set_direction(3)
 
 class Snake:
-    def __init__(self, default_size=3):
+    def __init__(self, default_size=3, difficulty=0):
         """Snake game by Infected
         """
         self.__game_canvas = Image()
@@ -101,6 +110,12 @@ class Snake:
             pass
         self.move()
         return self.__game_canvas
+
+    def set_direction(self, direction):
+        if type(direction) == int and direction in range(4):
+            self.__direction = direction
+            return True
+        return False
 
     def move(self):
         pass
