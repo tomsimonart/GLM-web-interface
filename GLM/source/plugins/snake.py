@@ -1,6 +1,5 @@
 from random import randint
 from time import process_time
-from ..libs.rainbow import msg
 from ..libs.text import Text
 from ..libs.image import Image
 from ..libs.drawer import Drawer
@@ -30,15 +29,19 @@ class Plugin(PluginBase):
 
         # Splash
         self.splash = True
-        self.splash_time = 1
+        self.splash_time = 2
         self.start_time = process_time()
         self.splash = self.load_image('splash')
         self.screen.add(self.splash, 'splash')
-        self.loading_bar = Image(11,1)
+        self.loading_bar = Image(11, 1)
         self.screen.add(self.loading_bar, 'lb', x=3, y=2, refresh=True)
 
         # Difficulty
         self.choose_difficulty = False
+
+        # Score
+        self.last_score = 0
+        self.show_score = False
 
     def _event_loop(self, event):
         pass
@@ -58,11 +61,14 @@ class Plugin(PluginBase):
         elif self.choose_difficulty:
             pass
 
+        elif self.show_score:
+            pass
+
         else:
             # Start game
             self.snake.refresh()
             if self.snake.check_lost():
-                self.splash = True
+                self.end_game()
 
     def update_loading_bar(self, min_, max_, forward):
         unit = (max_ - min_) / 100
@@ -104,9 +110,9 @@ class Plugin(PluginBase):
         self.register('down', self.go_down)
         self.register('left', self.go_left)
         self.register('right', self.go_right)
-        self.snake = Snake(default_size=3, difficulty=self.difficulty)
+        self.snake = Snake(default_size=5, difficulty=self.difficulty)
         self.screen.add(self.snake.get_game_canvas(), 'snake', refresh=True)
-        self.screen.set_fps(5)
+        self.screen.set_fps(7 + self.difficulty)
 
     def go_right(self):
         self.snake.set_direction(0)
@@ -119,6 +125,25 @@ class Plugin(PluginBase):
 
     def go_up(self):
         self.snake.set_direction(3)
+
+    def end_game(self):
+        self.unregister_all()
+        self.screen.remove_all()
+        self.score = self.snake.get_score()
+        self.show_score = True
+        self.score_bg = self.load_image('score')
+        self.screen.add(self.score_bg, 'score_bg')
+        self.score = Text(str(self.score).rjust(6, '0'))
+        self.screen.add(self.score, 'score', x=17, y=7)
+        self.register('enter', self.restart)
+
+    def restart(self):
+        self.screen.remove_all()
+        self.unregister_all()
+        self.show_score = False
+        self.choose_difficulty = True
+        self.start_choose_difficulty()
+
 
 class Snake:
     def __init__(self, default_size=3, difficulty=0):
@@ -135,9 +160,11 @@ class Snake:
         self.__score = 0
         self.__lost = False
         if difficulty > 1:
+            self.__score_modifier = 200 * (difficulty + 1)
             self.__borders = ((1, 1), (62, 14))
             self.__wall_collision = True
         else:
+            self.__score_modifier = 100 * (difficulty + 1)
             self.__borders = ((0, 0), (63, 15))
             self.__wall_collision = False
 
@@ -198,12 +225,11 @@ class Snake:
     def __eat_food(self, position):
         if self.__foods.count(position) >= 1:
             self.__foods.remove(position)
-            self.__score += 100
+            self.__score += (self.__score_modifier + self.__size)
             self.__size += 1
             self.__put_food()
 
     def check_lost(self):
-        msg(str(self.__lost))
         return self.__lost
 
     def set_direction(self, direction):
@@ -229,6 +255,9 @@ class Snake:
         self.__body.insert(0, np)
         if (len(self.__body)) > self.__size:
             self.__body.pop()
+
+    def get_score(self):
+        return self.__score
 
     def get_game_canvas(self):
         return self.__game_canvas
