@@ -1,3 +1,13 @@
+## 0.12.0
+* Added a new mono-space numeric font
+* Fixed screen frames per second
+* Events are now occult and visible events
+    ```
+    {{ enter;key;Enter }}
+    ```
+* Added sphinx documentation dependency
+* Added pylint dependency
+
 ## 0.11.0
 * Screen insert method
 * New Screen.add arguments order
