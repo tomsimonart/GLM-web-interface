@@ -7,8 +7,11 @@ Welcome to LMPM's documentation!
 ================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
+
+    root/web_api
+    root/plugin_tutorial
 
 
 

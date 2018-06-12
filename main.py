@@ -10,11 +10,11 @@ app.debug = True
 
 PLUGIN_DIRECTORY = "./GLM/source/" + glm.PLUGIN_PREFIX + "/"
 
-server_addr = 'localhost'
-server_port = 9999
-addr = (server_addr, server_port)
+SERVER_ADDR = 'localhost'
+SERVER_PORT = 9999
+ADDR = (SERVER_ADDR, SERVER_PORT)
 BUFFSIZE = 512
-client = lmpm_client.MainClient(addr)
+client = lmpm_client.MainClient(ADDR)
 
 @app.route('/')
 def index():
