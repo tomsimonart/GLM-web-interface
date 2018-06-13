@@ -54,22 +54,26 @@ class Server(object):
         parser.add_argument(
             '--matrix', '-m', help='Matrix enabled', action='store_true'
             )
-        parser.add_argument('--show', '-s', help='Virtual matrix enabled',
-        action='store_true')
+        parser.add_argument(
+            '--show',
+            '-s',
+            help='Virtual matrix enabled',
+            action='store_true'
+            )
         parser.add_argument(
             '--guishow', '-g', help='GUI enabled', action='store_true'
             )
 
         args = parser.parse_args()
 
-        dir = path.dirname(__file__)
-        rel_path = path.join(dir, 'GLM/verbosity')
+        dir_ = path.dirname(__file__)
+        rel_path = path.join(dir_, 'GLM/verbosity')
 
-        with open(rel_path, 'w') as f:
-            f.write(str(args.verbose)+'\n')
+        with open(rel_path, 'w') as verbosity_file:
+            verbosity_file.write(str(args.verbose)+'\n')
             if args.sverbose is not None:
                 for arg in args.sverbose:
-                    f.write(arg+'\n')
+                    verbosity_file.write(arg+'\n')
 
         self.server_addr = (args.host, args.port)
         self._matrix = args.matrix
@@ -91,6 +95,8 @@ class Server(object):
             )
 
     def server_forever(self):
+        """Server main loop
+        """
         self._state = self._init()
         while True:
             msg("Waiting", 0, "Server", level=4, slevel="select")
@@ -123,18 +129,24 @@ class Server(object):
                 msg("Disconnected", 2, "Server", conn, level=3)
                 self._selector.unregister(conn)
                 conn.close()
-        except EOFError as e:
-            msg("EOF", 3, "Server", e, level=0)
+        except EOFError as error:
+            msg("EOF", 3, "Server", error, level=0)
             sys.exit(0)
 
     def close(self):
+        """Terminate the server's connection
+        """
         msg("Closing", 2, "Server", level=3)
         self._server.close()
         self._selector.close()
 
 class Client(threading.Thread):
+    """Generic client threaded object
+    """
     def __init__(self, addr, buffsize=BUFFSIZE):
         super().__init__()
+        self._client = None
+        self._selector = None
         self.setDaemon(True)
         self._server_addr = addr
         self._buffsize = buffsize

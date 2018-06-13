@@ -1,9 +1,10 @@
-import json
-import socket
+"""This module is used by Flask to serve web pages.
+"""
+from flask import Flask, render_template, request
+
 import lmpm_client
 from GLM import glm
-from GLM.source.libs.rainbow import msg
-from flask import Flask, render_template, redirect, request, send_from_directory
+
 
 app = Flask(__name__)
 app.debug = True
@@ -18,7 +19,7 @@ client = lmpm_client.MainClient(ADDR)
 
 @app.route('/')
 def index():
-    """Loads the index and list plugins for further selection
+    """Renders the index page and lists the plugins on it
     """
     plugins, plugin_id = client.load_index()
     return render_template(
@@ -62,7 +63,7 @@ def o_event():
 
 @app.route('/plugin/update/')
 def update():
-    """Requests an update of the webview to the server
+    """Requests an update of the webview and the plugin state to the server
     """
     state = client.get_state()
     return render_template('update.html', state=state)
