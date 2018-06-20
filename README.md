@@ -4,6 +4,8 @@
 Script your own plugins and display **whatever you want** on a L.E.D. matrix
 and control/interact with your plugins from a web interface.
 
+<img src="https://img.shields.io/badge/platform-linux-lightgrey.svg"> <img src="https://img.shields.io/badge/release-v0.11.1--alpha-8833bb.svg"> <img src="https://img.shields.io/badge/license-MIT-blue.svg">
+
 ##  :computer: Hardware
 * Computer with [python 3](https://www.python.org/downloads/) installed (tested on linux only)
 * [Arduino UNO](https://store.arduino.cc/arduino-uno-rev3)
