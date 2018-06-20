@@ -1,23 +1,43 @@
-# Guide
+# :star: LMPM (Led Matrix Plugin Manager)
+<img align="right" src="https://i.imgur.com/tpx3227.jpg">
+
+Script your own plugins and display **whatever you want** on a L.E.D. matrix
+and control/interact with your plugins from a web interface.
+
+##  :computer: Hardware
+* Computer with [python 3](https://www.python.org/downloads/) installed (tested on linux only)
+* [Arduino UNO](https://store.arduino.cc/arduino-uno-rev3)
+* [L.E.D. Matrix](https://www.ebay.com/itm/Provide-Arduino-code-64x16-dot-Matrix-LED-for-diy-Sign-Light-Neon-Bright-UNO-MCU-/271303628009?pt=LH_DefaultDomain_0&hash=item3f2af4d4e9) (only works on this one for now)
+
+<img src="https://i.imgur.com/ONcQDo8.gif">
+
 ---
-## Installation
+
+# :beginner: Guide
+## :scroll: Installation
 * Clone :
 
-    >```cd ./GLM-web-interface```
+    >```git clone https://github.com/tomsimonart/LMPM.git```
+
+    >```cd ./LMPM```
+
+<img src="https://i.imgur.com/epAzNsI.png" heigth="150" width="370" align="right">
 
 * Install python packages (**Using "**virtualenv**" is recommended**) :
 
     >```pip install -r requirements.txt```
 
-    > You also have to install **TKinter** (for the guishow feature)
+    > You also need to install [TKinter](https://wiki.python.org/moin/TkInter) (for the **guishow** feature)
+    
 
-* Upload the arduino sketch (tested with **arduino uno**):
+* Upload the arduino sketch to your arduino (tested with **arduino uno**):
 
-    > You can for example use the **Arduino IDE** or **PlatformIO**
+    > You can for example use the [Arduino IDE](https://www.arduino.cc/en/Main/Software) or [PlatformIO](https://platformio.org/platformio-ide)
 
-    > The sketch is located in ***LMPM/GLM/matrix_IO/matrix_IO.ino***
+    > The sketch is located in [LMPM/GLM/matrix_IO/matrix_IO.ino](https://github.com/tomsimonart/LMPM/blob/master/GLM/matrix_IO/matrix_IO.ino)
 
-## Starting
+
+## :rocket: Starting
 
 * Start LMPM :
 
@@ -35,12 +55,17 @@
 
     >```./lmpm -V check -V info -m```
 
-## Web
+## :earth_africa: Web
 * Url should be
 
-    > **[http://localhost:5000](http://localhost:5000)**
+    > **[http://localhost:5000](http://localhost:5000)** (also works for multiple clients)
 
-#### Special thanks
-* **Maribib** for his more than great help with the server
-* **Mino** for the guishow feature and for making this project happen
+## :green_book: Documentation
+* Full documentation will *soon* (:feelsgood:) be available [here](https://tomsimonart.github.io/LMPM/)
+
+
+
+#### :+1: Special thanks
+* **Maribib** for his help with the server
+* **Mino** for the guishow feature
 * **Etnarek** and **iTitou** for their help with the arduino code
